@@ -1,0 +1,20 @@
+Ver 2.0.2
+	-Support for Classic
+	-Started to add support for translations.
+Ver 1.13.4
+	-Updated to WotLK spells and talents
+	-Added support for not showing all spellranks
+	-Made Spellmenu into a scrolling area.
+
+Ver 1.13.3
+	-Added Arcane Brilliance.
+
+Ver 1.13.2
+	-Overhauled Rotation.
+	-Added Spellmenu.
+
+Ver 1.13.1
+	-Fixed IceArmor/FrostArmor rank trail.
+	
+Ver 1.13.0
+	-Initial release for Classic WoW.
