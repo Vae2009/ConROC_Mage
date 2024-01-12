@@ -1,4 +1,7 @@
-Ver 2.0.2
+Ver 1.15.1
+	-reworked SoD rotation, all specs.
+	-supported runes: Arcane Blast, Ice Lance, Icy Veins, Living Bomb & Living Flame
+Ver 1.15.0
 	-Support for Classic
 	-Started to add support for translations.
 Ver 1.13.4

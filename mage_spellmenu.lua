@@ -30,6 +30,8 @@ local defaults = {
 	["ConROC_Caster_AoE_Blizzard"] = true,
 	["ConROC_Caster_Option_UseWand"] = false,
 	["ConROC_Caster_Option_AoE"] = true,
+	["ConROC_Caster_Rune_ArcaneBlastCount"] = 2,
+	["ConROC_PvP_Rune_ArcaneBlastCount"] = 2,
 }
 
 ConROCMageSpells = ConROCMageSpells or defaults;
@@ -121,7 +123,8 @@ function ConROC:SpellmenuClass()
 	    frameName = "Runes",
 	    spells = {
 	      {spellID = ids.optionMaxIds.RuneArcaneBlast, spellCheckbox = "Rune_ArcaneBlast", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneArcaneSurge, spellCheckbox = "Rune_ArcaneSurge", reqLevel = 1, type="rune"},
+	      {spellID = ids.optionMaxIds.RuneArcaneBlast, spellCheckbox = "Rune_ArcaneBlastCount", reqLevel = 1, type="textfield", icon=nil, customName="Number of Arcane Blast"},
+	      --{spellID = ids.optionMaxIds.RuneArcaneSurge, spellCheckbox = "Rune_ArcaneSurge", reqLevel = 1, type="rune"},
 	      {spellID = ids.optionMaxIds.RuneIceLance, spellCheckbox = "Rune_IceLance", reqLevel = 1, type="rune"},
 	      {spellID = ids.optionMaxIds.RuneIcyVeins, spellCheckbox = "Rune_IcyVeins", reqLevel = 1, type="rune"},
 	      {spellID = ids.optionMaxIds.RuneLivingBomb, spellCheckbox = "Rune_LivingBomb", reqLevel = 1, type="rune"},
@@ -901,7 +904,7 @@ function ConROC:SpellMenuUpdate(newSpell)
 					else
 						oItem:SetPoint("TOPLEFT", lFrame, "BOTTOMLEFT", 0, 0);
 					end
-					if plvl >= _spellData.reqLevel and IsSpellKnown(_spellData.spellID) then													
+					if plvl >= _spellData.reqLevel and (IsSpellKnown(_spellData.spellID) or IsSpellKnownOrOverridesKnown(_spellData.spellID)) then													
 						lFrame = oItem;
 						lFrame:Show();
 							if oItem:IsShown() then

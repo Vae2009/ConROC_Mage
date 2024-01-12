@@ -383,7 +383,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	local rmRegenRDY = ConROC:AbilityReady(_RuneMassRegeneration, timeShift);
 	local rRegenRDY = ConROC:AbilityReady(_RuneRegeneration, timeShift);
 	local rrTimeRDY = ConROC:AbilityReady(_RuneRewindTime, timeShift);
-	local rFoFBUFF, rFoFDUR = ConROC:BuffName(Player_Buff.FingersofFrost, timeShift);
+	local rFoFBUFF, rFoFCount, rFoFDUR = ConROC:UnitAura(Player_Buff.FingersofFrost, timeShift,'player', 'HELPFUL', false);
 
 --Conditions
 	local inMelee = CheckInteractDistance("target", 3);		
@@ -394,13 +394,18 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
     local resting = IsResting();
     local mounted = IsMounted();
     local onVehicle = UnitHasVehicleUI("player");
-	
+	local tarInAoe = 0;
+
+	if ConROC_AoEButton:IsVisible() and IsSpellKnown(_ArcaneExplosion) then
+		tarInAoe = ConROC:Targets(_ArcaneExplosion);
+	end
+
     if onVehicle then
         return nil
     end
 	
 --Indicators	
-	ConROC:AbilityBurst(_Evocation, evoRDY and manaPercent <= 25);
+	ConROC:AbilityBurst(_Evocation, evoRDY and manaPercent <= 10);
 	ConROC:AbilityBurst(_PresenceofMind, pomRDY and incombat);
 	ConROC:AbilityBurst(_ArcanePower, aPowerRDY and incombat and (not ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) or (ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) and wChillCount == 5))) ;	
 	ConROC:AbilityBurst(_Combustion, combRDY and incombat and (not ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) or (ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVuCount == 5)));
@@ -419,70 +424,192 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	--print("IsSpellKnown(_RuneIceLance)",IsSpellKnown(_RuneIceLance))
 	--print("IsSpellKnownOrOverridesKnown(_RuneIceLance)",IsSpellKnownOrOverridesKnown(_RuneIceLance))
 	--print("ConROC.Seasons.IsSoD",ConROC.Seasons.IsSoD)
-	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and evoRDY and manaPercent < 25 then
+	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and evoRDY and manaPercent < 10 then
 		return _Evocation;
 	end
-
 	if ConROC.Seasons.IsSoD then --DPS rotation for SoD
-	    if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then --and fBallRDY then
-	    	return _RuneIcyVeins;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-	    	return _RuneLivingBomb;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY and ConROC_AoEButton:IsVisible() then --and fBallRDY then
-	    	return _RuneLivingFlame;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < 4 then --and fBallRDY then
-	    	return _RuneArcaneBlast;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and raSurgeRDY then --and fBallRDY then
-	    	return _RuneArcaneSurge;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFBUFF) then --and fBallRDY then
-	    	return _RuneIceLance;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and rmRegenRDY then --and fBallRDY then
-	    	return _RuneMassRegeneration;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and rRegenRDY then --and fBallRDY then
-	    	return _RuneRegeneration;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and rrTimeRDY then --and fBallRDY then
-	    	return _RuneRewindTime;
-	    end
-	    if ConROC_AoEButton:IsVisible() then
-	    	if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and aExpRDY and inMelee then
-		        return _ArcaneExplosion;
+		if plvl < 10 then
+			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
+		    	return _RuneIcyVeins;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
+		    	return _RuneLivingFlame;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
+		    	return _RuneLivingBomb;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+		    	return _RuneArcaneBlast;
+		    end
+		    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and raSurgeRDY then
+		    	return _RuneArcaneSurge;
+		    end]]
+		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFCount > 1) then
+		    	return _RuneIceLance;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and rmRegenRDY then
+		    	return _RuneMassRegeneration;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and rRegenRDY then
+		    	return _RuneRegeneration;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and rrTimeRDY then
+		    	return _RuneRewindTime;
+		    end
+		    if ConROC_AoEButton:IsVisible() then
+		    	if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and aExpRDY and inMelee then
+			        return _ArcaneExplosion;
+			    end
+
+			    if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and fStrikeRDY and not inMelee and fStrikeDUR <= 2 then
+			        return _Flamestrike;
+			    end 
+			    
+			    if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and blizRDY and not inMelee then
+			        return _Blizzard;
+			    end
+			end
+	       	if fBlastRDY and (targetPh <= 25 or inMelee) and not ConROC_AoEButton:IsVisible() then
+		        return _FireBlast;
 		    end
 
-		    if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and fStrikeRDY and not inMelee and fStrikeDUR <= 2 then
-		        return _Flamestrike;
-		    end 
+		    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY and rFoFCount == 1 then
+		        return _Frostbolt;
+		    end
+		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFBUFF) then
+		    	return _RuneIceLance;
+		    end
 		    
-		    if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and blizRDY and not inMelee then
-		        return _Blizzard;
+		    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and fBallRDY then
+		        return _Fireball;
 		    end
-		end
-       	if fBlastRDY and (targetPh <= 25 or inMelee) and not ConROC_AoEButton:IsVisible() then
-	        return _FireBlast;
-	    end
-	    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and fBallRDY then
-	        return _Fireball;
-	    end
-    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
-	        return _ArcaneMissiles;
-	    end
-        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
-	        return _Frostbolt;
-	    end 
+	    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
+		        return _ArcaneMissiles;
+		    end
+	        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
+		        return _Frostbolt;
+		    end
+        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+            	return Caster.Shoot;
+        	end
+		else
+			if (currentSpecName == "Arcane") then
+				if ConROC_AoEButton:IsVisible() then
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
+				    	return _RuneLivingFlame;
+				    end
+				    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+				    	return _RuneArcaneBlast;
+				    end]]
+					if aExpRDY and inMelee then
+				        return _ArcaneExplosion;
+					end
+				else
+					if aExpRDY and ((targetPh <= 25 and inMelee) or inMelee) then
+				        return _ArcaneExplosion;
+					end	
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
+				    	return _RuneLivingFlame;
+				    end
+				    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+				    	return _RuneArcaneBlast;
+				    end
+			    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
+				        return _ArcaneMissiles;
+				    end
+				end
+			elseif (currentSpecName == "Fire") then
+				if ConROC_AoEButton:IsVisible() then
+					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+				        return _ArcaneExplosion;
+					elseif fBlastRDY and (targetPh <= 25 or inMelee) then
+				        return _FireBlast;
+					end
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
+				    	return _RuneLivingBomb;
+				    end				
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY and ConROC_AoEButton:IsVisible() then
+				    	return _RuneLivingFlame;
+				    end
+					if aExpRDY and inMelee then
+				        return _ArcaneExplosion;
+					end
+				else
+					if pBlastRDY and not incombat then
+						return _Pyroblast
+					end
+					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+				        return _ArcaneExplosion;
+					end	
+					if fBlastRDY and (targetPh <= 25 or inMelee) then
+				        return _FireBlast;
+					end
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
+				    	return _RuneLivingFlame;
+				    end
+					
+				    if scorRDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVulCount < 5 then
+				        return _Scorch;
+				    end
 
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
+				    	return _RuneLivingBomb;
+				    end
+
+				    if fBallRDY then
+				        return _Fireball;
+				    end
+		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+		            	return Caster.Shoot;
+		        	end
+				end
+			elseif (currentSpecName == "Frost") then
+				if ConROC_AoEButton:IsVisible() then
+					if aExpRDY and ((targetPh <= 25 and inMelee) or inMelee) then
+				        return _ArcaneExplosion;
+					end	
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
+				    	return _RuneLivingBomb;
+				    end				
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY and ConROC_AoEButton:IsVisible() then
+				    	return _RuneLivingFlame;
+				    end
+				    if blizRDY then
+				    	return _Blizzard
+				    end
+				else
+					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+				        return _ArcaneExplosion;
+					end	
+					if fBlastRDY and (targetPh <= 25 or inMelee) then
+				        return _FireBlast;
+					end
+					
+					if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFCount > 1) then
+				    	return _RuneIceLance;
+				    end
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
+				    	return _RuneLivingBomb;
+				    end
+					if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
+				    	return _RuneIcyVeins;
+				    end
+				    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY and rFoFCount == 1 then
+				        return _Frostbolt;
+				    end
+				    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFBUFF) then
+				    	return _RuneIceLance;
+				    end
+			        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
+				        return _Frostbolt;
+				    end
+		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+		            	return Caster.Shoot;
+		        	end
+				end
+			end	
+		end
 	else --DPS rotation for Classic Era & Classic HC
-
-
-		if ConROC:CheckBox(ConROC_SM_CD_Evocation) and evoRDY and manaPercent < 25 then
-			return _Evocation;
-		end
 		
 	    if pBlastRDY and (not incombat or pomBUFF) then
 	        return _Pyroblast;
@@ -504,7 +631,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	        return _FireBlast;
 	    end
 
-	    if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 20 and not evoRDY) or targetPh <= 5) then
+	    if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
 	        return Caster.Shoot;
 	    end
 	    
