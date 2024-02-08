@@ -25,9 +25,9 @@ local defaults = {
 
 	["ConROC_Caster_Armor_Ice"] = true,
 	["ConROC_Caster_Filler_Fireball"] = true,
-	["ConROC_Caster_AoE_ArcaneExplosion"] = true,
-	["ConROC_Caster_AoE_Flamestrike"] = true,
-	["ConROC_Caster_AoE_Blizzard"] = true,
+	["ConROC_Caster_AoE_ArcaneExplosion"] = false,
+	["ConROC_Caster_AoE_Flamestrike"] = false,
+	["ConROC_Caster_AoE_Blizzard"] = false,
 	["ConROC_Caster_Option_UseWand"] = false,
 	["ConROC_Caster_Option_AoE"] = true,
 	["ConROC_Caster_Rune_ArcaneBlastCount"] = 2,

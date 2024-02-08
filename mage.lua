@@ -11,7 +11,8 @@ ConROC.Mage = {};
 
 local ConROC_Mage, ids = ...;
 local optionMaxIds = ...;
-local currentSpecName
+local currentSpecName;
+local currentSpecID;
 
 function ConROC:EnableDefenseModule()
 	self.NextDef = ConROC.Mage.Defense;
@@ -29,36 +30,27 @@ function ConROC:PopulateTalentIDs()
     local numTabs = GetNumTalentTabs()
     
     for tabIndex = 1, numTabs do
-        local tabName = GetTalentTabInfo(tabIndex) .. "_Talent"
-        tabName = string.gsub(tabName, "%s", "") -- Remove spaces from tab name
-        if printTalentsMode then
-        	print(tabName..": ")
-        else
-        	ids[tabName] = {}
-    	end
-        
+        local tabName = GetTalentTabInfo(tabIndex)
+        tabName = string.gsub(tabName, "[^%w]", "") .. "_Talent" -- Remove spaces from tab name
+        print("ids."..tabName.." = {")
         local numTalents = GetNumTalents(tabIndex)
 
         for talentIndex = 1, numTalents do
             local name, _, _, _, _ = GetTalentInfo(tabIndex, talentIndex)
 
             if name then
-                local talentID = string.gsub(name, "%s", "") -- Remove spaces from talent name
-                if printTalentsMode then
-                	print(talentID .." = ID no: ", talentIndex)
-                else
-                	ids[tabName][talentID] = talentIndex
-                end
+                local talentID = string.gsub(name, "[^%w]", "") -- Remove spaces from talent name
+                    print(talentID .." = ", talentIndex ..",")
             end
         end
+        print("}")
     end
-    if printTalentsMode then printTalentsMode = false end
 end
-ConROC:PopulateTalentIDs()
 
 local Racial, Spec, Caster, Arc_Ability, Arc_Talent, Fire_Ability, Fire_Talent, Frost_Ability, Frost_Talent, Player_Buff, Player_Debuff, Target_Debuff = ids.Racial, ids.Spec, ids.Caster, ids.Arc_Ability, ids.Arcane_Talent, ids.Fire_Ability, ids.Fire_Talent, ids.Frost_Ability, ids.Frost_Talent, ids.Player_Buff, ids.Player_Debuff, ids.Target_Debuff;
 function ConROC:SpecUpdate()
 	currentSpecName = ConROC:currentSpec()
+    currentSpecID = ConROC:currentSpec("ID")
 
 	if currentSpecName then
 	   ConROC:Print(self.Colors.Info .. "Current spec:", self.Colors.Success ..  currentSpecName)
@@ -386,7 +378,8 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	local rFoFBUFF, rFoFCount, rFoFDUR = ConROC:UnitAura(Player_Buff.FingersofFrost, timeShift,'player', 'HELPFUL', false);
 
 --Conditions
-	local inMelee = CheckInteractDistance("target", 3);		
+	local inMelee = IsSpellInRange(select(1,GetSpellInfo(1752)), "target") -- checking range with sinister strike 5 yards
+	--local inMelee = CheckInteractDistance("target", 3);		
 	local targetPh = ConROC:PercentHealth('target');		
 	local hasWand = HasWandEquipped();
    	local moving = ConROC:PlayerSpeed();	
@@ -411,24 +404,16 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	ConROC:AbilityBurst(_Combustion, combRDY and incombat and (not ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) or (ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVuCount == 5)));
 
 	ConROC:AbilityRaidBuffs(_ArcaneIntellect, aIntRDY and not (aIntBUFF or aBriBUFF));
+    ConROC:AbilityInterrupt(_Counterspell, ConROC:Interrupt() and cSpellRDY)
 	
 --Warnings
-	--[[
-	if not incombat and not ConROC:TarHostile() and ConROC:CheckBox(ConROC_SM_Option_HideRotation) then
-		ConROCWindow:Hide();
-	else
-		ConROCWindow:Show();
-	end
-	--]]
+	
 --Rotations
-	--print("IsSpellKnown(_RuneIceLance)",IsSpellKnown(_RuneIceLance))
-	--print("IsSpellKnownOrOverridesKnown(_RuneIceLance)",IsSpellKnownOrOverridesKnown(_RuneIceLance))
-	--print("ConROC.Seasons.IsSoD",ConROC.Seasons.IsSoD)
 	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and evoRDY and manaPercent < 10 then
 		return _Evocation;
 	end
 	if ConROC.Seasons.IsSoD then --DPS rotation for SoD
-		if plvl < 10 then
+		if plvl < 10 or not currentSpecID then
 			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
 		    	return _RuneIcyVeins;
 		    end
@@ -493,7 +478,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
             	return Caster.Shoot;
         	end
 		else
-			if (currentSpecName == "Arcane") then
+			if (currentSpecID == ids.Spec.Arcane) then
 				if ConROC_AoEButton:IsVisible() then
 					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
 				    	return _RuneLivingFlame;
@@ -518,7 +503,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 				        return _ArcaneMissiles;
 				    end
 				end
-			elseif (currentSpecName == "Fire") then
+			elseif (currentSpecID == ids.Spec.Fire) then
 				if ConROC_AoEButton:IsVisible() then
 					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
 				        return _ArcaneExplosion;
@@ -555,7 +540,9 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
 				    	return _RuneLivingBomb;
 				    end
-
+				    if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
+						return _RuneIcyVeins;
+					end
 				    if fBallRDY then
 				        return _Fireball;
 				    end
@@ -563,7 +550,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 		            	return Caster.Shoot;
 		        	end
 				end
-			elseif (currentSpecName == "Frost") then
+			elseif (currentSpecID == ids.Spec.Frost) then
 				if ConROC_AoEButton:IsVisible() then
 					if aExpRDY and ((targetPh <= 25 and inMelee) or inMelee) then
 				        return _ArcaneExplosion;

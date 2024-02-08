@@ -1,23 +1,26 @@
+v1.15.2    
+    -Fixed rotation issue, that no spells when sugested when beeing level 10+ and not choosen any talents. Then you get the same rotation as pre level 10
+    -talents and spec check reworked due to error for client languages
 Ver 1.15.1
-	-reworked SoD rotation, all specs.
-	-supported runes: Arcane Blast, Ice Lance, Icy Veins, Living Bomb & Living Flame
+    -reworked SoD rotation, all specs.
+    -supported runes: Arcane Blast, Ice Lance, Icy Veins, Living Bomb & Living Flame
 Ver 1.15.0
-	-Support for Classic
-	-Started to add support for translations.
+    -Support for Classic
+    -Started to add support for translations.
 Ver 1.13.4
-	-Updated to WotLK spells and talents
-	-Added support for not showing all spellranks
-	-Made Spellmenu into a scrolling area.
+    -Updated to WotLK spells and talents
+    -Added support for not showing all spellranks
+    -Made Spellmenu into a scrolling area.
 
 Ver 1.13.3
-	-Added Arcane Brilliance.
+    -Added Arcane Brilliance.
 
 Ver 1.13.2
-	-Overhauled Rotation.
-	-Added Spellmenu.
+    -Overhauled Rotation.
+    -Added Spellmenu.
 
 Ver 1.13.1
-	-Fixed IceArmor/FrostArmor rank trail.
-	
+    -Fixed IceArmor/FrostArmor rank trail.
+    
 Ver 1.13.0
-	-Initial release for Classic WoW.
+    -Initial release for Classic WoW.

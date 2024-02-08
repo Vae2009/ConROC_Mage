@@ -1,7 +1,7 @@
 ## Title:-|cffFFFFFFConROC|r- |cff69CCF0Mage|r
-## Version: 1.15.1
-## Author: Vae, 1.15.1 updated by Lith
-## Interface: 11500
+## Version: 1.15.2
+## Author: Vae, 1.15.2 updated by Lith
+## Interface: 11501
 ## SavedVariablesPerCharacter: ConROCMageSpells
 ## Dependencies: ConROC
 ## LoadOnDemand: 1

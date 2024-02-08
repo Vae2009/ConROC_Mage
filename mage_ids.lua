@@ -83,7 +83,25 @@ local ConROC_Mage, optionMaxIds = ...;
 		PolymorphRank4 = 12826,
 		PresenceofMind = 12043,
 	}
---Fire
+	ids.Arcane_Talent = {
+		ArcaneSubtlety =  1,
+		ArcaneConcentration =  2,
+		ArcaneFocus =  3,
+		ArcaneMind =  4,
+		WandSpecialization =  5,
+		ImprovedArcaneMissiles =  6,
+		ImprovedArcaneExplosion =  7,
+		MagicAttunement =  8,
+		ImprovedManaShield =  9,
+		ArcaneResilience =  10,
+		PresenceofMind =  11,
+		ArcanePower =  12,
+		ImprovedCounterspell =  13,
+		ArcaneInstability =  14,
+		ArcaneMeditation =  15,
+		MagicAbsorption =  16,
+	}
+	--Fire
 	ids.Fire_Ability = {
 		BlastWaveRank1 = 11113,
 		BlastWaveRank2 = 13018,
@@ -136,6 +154,24 @@ local ConROC_Mage, optionMaxIds = ...;
 		ScorchRank6 = 10206,
 		ScorchRank7 = 10207,
 	}
+	ids.Fire_Talent = {
+		BurningSoul =  1,
+		ImprovedFireWard =  2,
+		ImprovedScorch =  3,
+		ImprovedFireball =  4,
+		ImprovedFireBlast =  5,
+		FlameThrowing =  6,
+		Pyroblast =  7,
+		Impact =  8,
+		ImprovedFlamestrike =  9,
+		BlastWave =  10,
+		CriticalMass =  11,
+		Ignite =  12,
+		FirePower =  13,
+		Combustion =  14,
+		Incinerate =  15,
+		MasterofElements =  16,
+	}
 --Frost
 	ids.Frost_Ability = {
 		BlizzardRank1 = 10,
@@ -183,6 +219,25 @@ local ConROC_Mage, optionMaxIds = ...;
 		IceArmorRank3 = 10219,
 		IceArmorRank4 = 10220,
 	}
+	ids.Frost_Talent = {
+		ImprovedFrostbolt =  1,
+		Frostbite =  2,
+		PiercingIce =  3,
+		ImprovedFrostNova =  4,
+		ImprovedBlizzard =  5,
+		ImprovedConeofCold =  6,
+		Permafrost =  7,
+		FrostChanneling =  8,
+		Shatter =  9,
+		WintersChill =  10,
+		ColdSnap =  11,
+		FrostWarding =  12,
+		IceBarrier =  13,
+		IceBlock =  14,
+		IceShards =  15,
+		ArcticReach =  16,
+		ElementalPrecision =  17,
+	}
 	ids.Runes = {
 		ArcaneBlast = 400574,
 		ArcaneSurge = 425124,
@@ -193,6 +248,10 @@ local ConROC_Mage, optionMaxIds = ...;
 		MassRegeneration = 412510,
 		Regeneration = 401417,
 		RewindTime = 401462,
+		MissileBarrage = 400589, --Phase 2 - Buff
+		SpellfrostBolt = 412532, --Phase 2 - Debuff
+		ChronostaticPreservation_Store = 425187, --Phase 2
+		ChronostaticPreservation_Heal = 436517, --Phase 2
 	}
 -- Auras
 	ids.Player_Buff = {
