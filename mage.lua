@@ -378,7 +378,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	local rFoFBUFF, rFoFCount, rFoFDUR = ConROC:UnitAura(Player_Buff.FingersofFrost, timeShift,'player', 'HELPFUL', false);
 
 --Conditions
-	local inMelee = IsSpellInRange(select(1,GetSpellInfo(1752)), "target") -- checking range with sinister strike 5 yards
+	local inMelee = ConROC:IsMeleeRange()--checking range 5 yards
 	--local inMelee = CheckInteractDistance("target", 3);		
 	local targetPh = ConROC:PercentHealth('target');		
 	local hasWand = HasWandEquipped();
