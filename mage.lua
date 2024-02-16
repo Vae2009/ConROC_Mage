@@ -379,7 +379,6 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 
 --Conditions
 	local inMelee = ConROC:IsMeleeRange()--checking range 5 yards
-	--local inMelee = CheckInteractDistance("target", 3);		
 	local targetPh = ConROC:PercentHealth('target');		
 	local hasWand = HasWandEquipped();
    	local moving = ConROC:PlayerSpeed();	
@@ -683,7 +682,7 @@ function ConROC.Mage.Defense(_, timeShift, currentSpell, gcd)
 	local frNovaRDY = ConROC:AbilityReady(_FrostNova, timeShift);
 
 --Conditions
-	local inMelee = CheckInteractDistance("target", 3);	
+	local inMelee = ConROC:IsMeleeRange()--CheckInteractDistance("target", 3);	
 	local targetPh = ConROC:PercentHealth('target');
     local onVehicle = UnitHasVehicleUI("player");
 	
