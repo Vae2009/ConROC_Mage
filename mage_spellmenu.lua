@@ -7,7 +7,6 @@ local debugOptions = {
 local L = LibStub("AceLocale-3.0"):GetLocale("ConROC");
 
 local ConROC_Mage, ids = ...;
-local optionMaxIds = ...;
 local ConROC_RolesTable = {};
 local wandFrame =0;
 local lastFrame = 0;
@@ -104,6 +103,7 @@ local function CheckScrollbarVisibility()
 end
 
 function ConROC:SpellmenuClass()
+	ConROC:UpdateSpellID();
 	ConROC_RoleSettingsTable = {
 		{
 		frameName = "Caster",
@@ -122,50 +122,50 @@ function ConROC:SpellmenuClass()
 		{
 	    frameName = "Runes",
 	    spells = {
-	      {spellID = ids.optionMaxIds.RuneArcaneBlast, spellCheckbox = "Rune_ArcaneBlast", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneArcaneBlast, spellCheckbox = "Rune_ArcaneBlastCount", reqLevel = 1, type="textfield", icon=nil, customName="Number of Arcane Blast"},
-	      --{spellID = ids.optionMaxIds.RuneArcaneSurge, spellCheckbox = "Rune_ArcaneSurge", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneIceLance, spellCheckbox = "Rune_IceLance", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneIcyVeins, spellCheckbox = "Rune_IcyVeins", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneLivingBomb, spellCheckbox = "Rune_LivingBomb", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneLivingFlame, spellCheckbox = "Rune_LivingFlame", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneMassRegeneration, spellCheckbox = "Rune_MassRegeneration", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneRegeneration, spellCheckbox = "Rune_Regeneration", reqLevel = 1, type="rune"},
-	      {spellID = ids.optionMaxIds.RuneRewindTime, spellCheckbox = "Rune_RewindTime", reqLevel = 1, type="rune"},
+	      {spellID = ids.Runes.ArcaneBlast, spellCheckbox = "Rune_ArcaneBlast", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.ArcaneBlast, spellCheckbox = "Rune_ArcaneBlastCount", reqLevel = 1, type = "textfield", icon = ids.Runes.ArcaneBlast, customName = "Number of Arcane Blast"},
+	      --{spellID = ids.Runes.ArcaneSurge, spellCheckbox = "Rune_ArcaneSurge", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.IceLance, spellCheckbox = "Rune_IceLance", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.IcyVeins, spellCheckbox = "Rune_IcyVeins", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.LivingBomb, spellCheckbox = "Rune_LivingBomb", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.LivingFlame, spellCheckbox = "Rune_LivingFlame", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.MassRegeneration, spellCheckbox = "Rune_MassRegeneration", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.Regeneration, spellCheckbox = "Rune_Regeneration", reqLevel = 1, type = "rune"},
+	      {spellID = ids.Runes.RewindTime, spellCheckbox = "Rune_RewindTime", reqLevel = 1, type = "rune"},
 	    },
 	    groupType = "checkBoxes"
 	  },{
 	    frameName = "Armors",
 	    spells = {
-	      {spellID = ids.optionMaxIds.IceArmor, spellCheckbox = "Armor_Ice", reqLevel = 1, type="spell"},
-	      {spellID = ids.optionMaxIds.MageArmor, spellCheckbox = "Armor_Mage", reqLevel = 34, type="spell"},
+	      {spellID = ids.Ability.IceArmor, spellCheckbox = "Armor_Ice", reqLevel = 1, type="spell"},
+	      {spellID = ids.Ability.MageArmor, spellCheckbox = "Armor_Mage", reqLevel = 34, type="spell"},
 	    },
 	    groupType = "radioButtons"
 	  },
 	  {
 	    frameName = "Filler",
 	    spells = {
-	      {spellID = ids.optionMaxIds.Fireball, spellCheckbox = "Filler_Fireball", reqLevel = 1, type="spell"},
-	      {spellID = ids.optionMaxIds.Frostbolt, spellCheckbox = "Filler_Frostbolt", reqLevel = 4, type="spell"},
-	      {spellID = ids.optionMaxIds.ArcaneMissiles, spellCheckbox = "Filler_ArcaneMissiles", reqLevel = 8, type="spell"}
+	      {spellID = ids.Ability.Fireball, spellCheckbox = "Filler_Fireball", reqLevel = 1, type="spell"},
+	      {spellID = ids.Ability.Frostbolt, spellCheckbox = "Filler_Frostbolt", reqLevel = 4, type="spell"},
+	      {spellID = ids.Ability.ArcaneMissiles, spellCheckbox = "Filler_ArcaneMissiles", reqLevel = 8, type="spell"}
 	    },
 	    groupType = "radioButtons"
 	  },
 	  {
 	    frameName = "Cooldowns",
 	    spells = {
-	    	{spellID = ids.optionMaxIds.Evocation, spellCheckbox = "CD_Evocation", reqLevel = 20, type="spell"},
-	    	{spellID = ids.optionMaxIds.ArcanePower, spellCheckbox = "CD_ArcanePower", reqLevel = 40, type="spell"},
-	    	{spellID = ids.optionMaxIds.Combustion, spellCheckbox = "CD_Combustion", reqLevel = 40, type="spell"},
+	    	{spellID = ids.Ability.Evocation, spellCheckbox = "CD_Evocation", reqLevel = 20, type="spell"},
+	    	{spellID = ids.Ability.ArcanePower, spellCheckbox = "CD_ArcanePower", reqLevel = 40, type="spell"},
+	    	{spellID = ids.Ability.Combustion, spellCheckbox = "CD_Combustion", reqLevel = 40, type="spell"},
 	    },
 	    groupType = "checkBoxes"
 	  },
 	  {
 	    frameName = "AoEs",
 	    spells = {
-	    	{spellID = ids.optionMaxIds.ArcaneExplosion, spellCheckbox = "AoE_ArcaneExplosion", reqLevel = 14, type="spell"},
-	    	{spellID = ids.optionMaxIds.Flamestrike, spellCheckbox = "AoE_Flamestrike", reqLevel = 16, type="spell"},
-	    	{spellID = ids.optionMaxIds.Blizzard, spellCheckbox = "AoE_Blizzard", reqLevel = 20, type="spell"}
+	    	{spellID = ids.Ability.ArcaneExplosion, spellCheckbox = "AoE_ArcaneExplosion", reqLevel = 14, type="spell"},
+	    	{spellID = ids.Ability.Flamestrike, spellCheckbox = "AoE_Flamestrike", reqLevel = 16, type="spell"},
+	    	{spellID = ids.Ability.Blizzard, spellCheckbox = "AoE_Blizzard", reqLevel = 20, type="spell"}
 	    },
 	    groupType = "checkBoxes"
 	  },
@@ -409,7 +409,7 @@ function ConROC_OptionsWindow(_table, _roles)
                 if _table[i].groupType == "radioButtons" then
                     ConROC:OptionRadioButtonSpell(_spellData, i, j, _spellFrame, radioButtonsTable);
                 else
-                    ConROC:OptionCheckboxSpell(_spellData, i, j, _spellFrame);                  
+                    ConROC:OptionCheckboxSpell(_spellData, i, j, _spellFrame);
                 end
             elseif _spellData.type == "wand" then
                 ConROC:OptionWand(_spellData, i, j, _spellFrame);
@@ -1056,3 +1056,5 @@ function ConROC:RoleProfile()
 	    end
 	end
 end
+
+ConROC:SpellmenuClass();

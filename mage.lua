@@ -1,18 +1,17 @@
-local printTalentsMode = false
-
--- Slash command for printing talent tree with talent names and ID numbers
-SLASH_CONROCPRINTTALENTS1 = "/ConROCPT"
-SlashCmdList["CONROCPRINTTALENTS"] = function()
-    printTalentsMode = not printTalentsMode
-    ConROC:PopulateTalentIDs()
-end
-
 ConROC.Mage = {};
 
 local ConROC_Mage, ids = ...;
-local optionMaxIds = ...;
 local currentSpecName;
 local currentSpecID;
+
+function ConROC:EnableRotationModule()
+	self.Description = "Mage";
+	self.NextSpell = ConROC.Mage.Damage;
+
+	self:RegisterEvent('UNIT_SPELLCAST_SUCCEEDED');
+	self:RegisterEvent("PLAYER_TALENT_UPDATE");
+	self.lastSpellId = 0;
+end
 
 function ConROC:EnableDefenseModule()
 	self.NextDef = ConROC.Mage.Defense;
@@ -22,32 +21,10 @@ function ConROC:UNIT_SPELLCAST_SUCCEEDED(event, unitID, lineID, spellID)
 	if unitID == 'player' then
 		self.lastSpellId = spellID;
 	end
-	
+
 	ConROC:JustCasted(spellID);
 end
 
-function ConROC:PopulateTalentIDs()
-    local numTabs = GetNumTalentTabs()
-    
-    for tabIndex = 1, numTabs do
-        local tabName = GetTalentTabInfo(tabIndex)
-        tabName = string.gsub(tabName, "[^%w]", "") .. "_Talent" -- Remove spaces from tab name
-        print("ids."..tabName.." = {")
-        local numTalents = GetNumTalents(tabIndex)
-
-        for talentIndex = 1, numTalents do
-            local name, _, _, _, _ = GetTalentInfo(tabIndex, talentIndex)
-
-            if name then
-                local talentID = string.gsub(name, "[^%w]", "") -- Remove spaces from talent name
-                    print(talentID .." = ", talentIndex ..",")
-            end
-        end
-        print("}")
-    end
-end
-
-local Racial, Spec, Caster, Arc_Ability, Arc_Talent, Fire_Ability, Fire_Talent, Frost_Ability, Frost_Talent, Player_Buff, Player_Debuff, Target_Debuff = ids.Racial, ids.Spec, ids.Caster, ids.Arc_Ability, ids.Arcane_Talent, ids.Fire_Ability, ids.Fire_Talent, ids.Frost_Ability, ids.Frost_Talent, ids.Player_Buff, ids.Player_Debuff, ids.Target_Debuff;
 function ConROC:SpecUpdate()
 	currentSpecName = ConROC:currentSpec()
     currentSpecID = ConROC:currentSpec("ID")
@@ -58,678 +35,513 @@ function ConROC:SpecUpdate()
 	   ConROC:Print(self.Colors.Error .. "You do not currently have a spec.")
 	end
 end
+
 ConROC:SpecUpdate()
---Ranks
---Arcane
-local _Evocation = Arc_Ability.Evocation;
-local _PresenceofMind = Arc_Ability.PresenceofMind;
-local _ArcanePower = Arc_Ability.ArcanePower;
-local _AmplifyMagic = Arc_Ability.AmplifyMagicRank1;
-local _ArcaneBrilliance = Arc_Ability.ArcaneBrilliance;
-local _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank1;
-local _ArcaneIntellect = Arc_Ability.ArcaneIntellectRank1;
-local _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank1;
-local _DampenMagic = Arc_Ability.DampenMagicRank1;
-local _MageArmor = Arc_Ability.MageArmorRank1;
-local _ManaShield = Arc_Ability.ManaShieldRank1;
---Fire
-local _BlastWave = Fire_Ability.BlastWaveRank1;
-local _Combustion = Fire_Ability.Combustion;
-local _FireBlast = Fire_Ability.FireBlastRank1;
-local _FireWard = Fire_Ability.FireWardRank1;
-local _Fireball = Fire_Ability.FireballRank1;
-local _Flamestrike = Fire_Ability.FlamestrikeRank1;
-local _FlamestrikeDR = Fire_Ability.FlamestrikeRank1;
-local _Pyroblast = Fire_Ability.PyroblastRank1;
-local _Scorch = Fire_Ability.ScorchRank1;
---Frost	
-local _Blizzard = Frost_Ability.BlizzardRank1;
-local _ConeofCold = Frost_Ability.ConeofColdRank1;
-local _IceBarrier = Frost_Ability.IceBarrierRank1;
-local _IceArmor = Frost_Ability.FrostArmorRank1;
-local _FrostNova = Frost_Ability.FrostNovaRank1;	
-local _FrostWard = Frost_Ability.FrostWardRank1;
-local _Frostbolt = Frost_Ability.FrostboltRank1;
---runes
-local _RuneArcaneBlast = ids.Runes.ArcaneBlast;
-local _RuneArcaneSurge = ids.Runes.ArcaneSurge;
-local _RuneIceLance = ids.Runes.IceLance;
-local _RuneIcyVeins = ids.Runes.IcyVeins;
-local _RuneLivingBomb = ids.Runes.LivingBomb;
-local _RuneLivingFlame = ids.Runes.LivingFlame;
-local _RuneMassRegeneration = ids.Runes.MassRegeneration;
-local _RuneRegeneration = ids.Runes.Regeneration;
-local _RuneRewindTime = ids.Runes.RewindTime;
 
-function ConROC:UpdateSpellID()
-	--Ranks
-	if IsSpellKnown(Arc_Ability.AmplifyMagicRank4) then _AmplifyMagic = Arc_Ability.AmplifyMagicRank4;
-	elseif IsSpellKnown(Arc_Ability.AmplifyMagicRank3) then _AmplifyMagic = Arc_Ability.AmplifyMagicRank3;
-	elseif IsSpellKnown(Arc_Ability.AmplifyMagicRank2) then _AmplifyMagic = Arc_Ability.AmplifyMagicRank2; end
-
-	if IsSpellKnown(Arc_Ability.ArcaneExplosionRank6) then _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank6;
-	elseif IsSpellKnown(Arc_Ability.ArcaneExplosionRank5) then _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank5;
-	elseif IsSpellKnown(Arc_Ability.ArcaneExplosionRank4) then _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank4;
-	elseif IsSpellKnown(Arc_Ability.ArcaneExplosionRank3) then _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank3;
-	elseif IsSpellKnown(Arc_Ability.ArcaneExplosionRank2) then _ArcaneExplosion = Arc_Ability.ArcaneExplosionRank2; end
-
-	if IsSpellKnown(Arc_Ability.ArcaneIntellectRank5) then _ArcaneIntellect = Arc_Ability.ArcaneIntellectRank5;
-	elseif IsSpellKnown(Arc_Ability.ArcaneIntellectRank4) then _ArcaneIntellect = Arc_Ability.ArcaneIntellectRank4;
-	elseif IsSpellKnown(Arc_Ability.ArcaneIntellectRank3) then _ArcaneIntellect = Arc_Ability.ArcaneIntellectRank3;
-	elseif IsSpellKnown(Arc_Ability.ArcaneIntellectRank2) then _ArcaneIntellect = Arc_Ability.ArcaneIntellectRank2; end
-
-	if IsSpellKnown(Arc_Ability.ArcaneMissilesRank7) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank7;
-	elseif IsSpellKnown(Arc_Ability.ArcaneMissilesRank6) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank6;
-	elseif IsSpellKnown(Arc_Ability.ArcaneMissilesRank5) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank5;
-	elseif IsSpellKnown(Arc_Ability.ArcaneMissilesRank4) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank4;
-	elseif IsSpellKnown(Arc_Ability.ArcaneMissilesRank3) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank3;
-	elseif IsSpellKnown(Arc_Ability.ArcaneMissilesRank2) then _ArcaneMissiles = Arc_Ability.ArcaneMissilesRank2; end
-
-	if IsSpellKnown(Arc_Ability.DampenMagicRank5) then _DampenMagic = Arc_Ability.DampenMagicRank5;
-	elseif IsSpellKnown(Arc_Ability.DampenMagicRank4) then _DampenMagic = Arc_Ability.DampenMagicRank4;
-	elseif IsSpellKnown(Arc_Ability.DampenMagicRank3) then _DampenMagic = Arc_Ability.DampenMagicRank3;
-	elseif IsSpellKnown(Arc_Ability.DampenMagicRank2) then _DampenMagic = Arc_Ability.DampenMagicRank2; end	
-
-	if IsSpellKnown(Fire_Ability.BlastWaveRank5) then _BlastWave = Fire_Ability.BlastWaveRank5;
-	elseif IsSpellKnown(Fire_Ability.BlastWaveRank4) then _BlastWave = Fire_Ability.BlastWaveRank4;
-	elseif IsSpellKnown(Fire_Ability.BlastWaveRank3) then _BlastWave = Fire_Ability.BlastWaveRank3;
-	elseif IsSpellKnown(Fire_Ability.BlastWaveRank2) then _BlastWave = Fire_Ability.BlastWaveRank2; end
-
-	if IsSpellKnown(Fire_Ability.FireBlastRank7) then _FireBlast = Fire_Ability.FireBlastRank7;
-	elseif IsSpellKnown(Fire_Ability.FireBlastRank6) then _FireBlast = Fire_Ability.FireBlastRank6;
-	elseif IsSpellKnown(Fire_Ability.FireBlastRank5) then _FireBlast = Fire_Ability.FireBlastRank5;
-	elseif IsSpellKnown(Fire_Ability.FireBlastRank4) then _FireBlast = Fire_Ability.FireBlastRank4;
-	elseif IsSpellKnown(Fire_Ability.FireBlastRank3) then _FireBlast = Fire_Ability.FireBlastRank3;
-	elseif IsSpellKnown(Fire_Ability.FireBlastRank2) then _FireBlast = Fire_Ability.FireBlastRank2; end
-
-	if IsSpellKnown(Fire_Ability.FireWardRank5) then _FireWard = Fire_Ability.FireWardRank5;
-	elseif IsSpellKnown(Fire_Ability.FireWardRank4) then _FireWard = Fire_Ability.FireWardRank4;
-	elseif IsSpellKnown(Fire_Ability.FireWardRank3) then _FireWard = Fire_Ability.FireWardRank3;
-	elseif IsSpellKnown(Fire_Ability.FireWardRank2) then _FireWard = Fire_Ability.FireWardRank2; end
-
-	if IsSpellKnown(Fire_Ability.FireballRank11) then _Fireball = Fire_Ability.FireballRank11;
-	elseif IsSpellKnown(Fire_Ability.FireballRank10) then _Fireball = Fire_Ability.FireballRank10;
-	elseif IsSpellKnown(Fire_Ability.FireballRank9) then _Fireball = Fire_Ability.FireballRank8;
-	elseif IsSpellKnown(Fire_Ability.FireballRank8) then _Fireball = Fire_Ability.FireballRank9;
-	elseif IsSpellKnown(Fire_Ability.FireballRank7) then _Fireball = Fire_Ability.FireballRank7;	
-	elseif IsSpellKnown(Fire_Ability.FireballRank6) then _Fireball = Fire_Ability.FireballRank6;
-	elseif IsSpellKnown(Fire_Ability.FireballRank5) then _Fireball = Fire_Ability.FireballRank5;
-	elseif IsSpellKnown(Fire_Ability.FireballRank4) then _Fireball = Fire_Ability.FireballRank4;
-	elseif IsSpellKnown(Fire_Ability.FireballRank3) then _Fireball = Fire_Ability.FireballRank3;
-	elseif IsSpellKnown(Fire_Ability.FireballRank2) then _Fireball = Fire_Ability.FireballRank2; end
-
-	if IsSpellKnown(Fire_Ability.FlamestrikeRank6) then _Flamestrike = Fire_Ability.FlamestrikeRank6;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank5) then _Flamestrike = Fire_Ability.FlamestrikeRank5;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank4) then _Flamestrike = Fire_Ability.FlamestrikeRank4;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank3) then _Flamestrike = Fire_Ability.FlamestrikeRank3;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank2) then _Flamestrike = Fire_Ability.FlamestrikeRank2; end
-
-	--down ranked Flamestrike
-	if IsSpellKnown(Fire_Ability.FlamestrikeRank6) then _FlamestrikeDR = Fire_Ability.FlamestrikeRank5;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank5) then _FlamestrikeDR = Fire_Ability.FlamestrikeRank4;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank4) then _FlamestrikeDR = Fire_Ability.FlamestrikeRank3;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank3) then _FlamestrikeDR = Fire_Ability.FlamestrikeRank2;
-	elseif IsSpellKnown(Fire_Ability.FlamestrikeRank2) then _FlamestrikeDR = Fire_Ability.FlamestrikeRank1; end
-
-	if IsSpellKnown(Fire_Ability.PyroblastRank8) then _Pyroblast = Fire_Ability.PyroblastRank8;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank7) then _Pyroblast = Fire_Ability.PyroblastRank7;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank6) then _Pyroblast = Fire_Ability.PyroblastRank6;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank5) then _Pyroblast = Fire_Ability.PyroblastRank5;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank4) then _Pyroblast = Fire_Ability.PyroblastRank4;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank3) then _Pyroblast = Fire_Ability.PyroblastRank3;
-	elseif IsSpellKnown(Fire_Ability.PyroblastRank2) then _Pyroblast = Fire_Ability.PyroblastRank2; end
-
-	if IsSpellKnown(Fire_Ability.ScorchRank7) then _Scorch = Fire_Ability.ScorchRank7;
-	elseif IsSpellKnown(Fire_Ability.ScorchRank6) then _Scorch = Fire_Ability.ScorchRank6;
-	elseif IsSpellKnown(Fire_Ability.ScorchRank5) then _Scorch = Fire_Ability.ScorchRank5;
-	elseif IsSpellKnown(Fire_Ability.ScorchRank4) then _Scorch = Fire_Ability.ScorchRank4;
-	elseif IsSpellKnown(Fire_Ability.ScorchRank3) then _Scorch = Fire_Ability.ScorchRank3;
-	elseif IsSpellKnown(Fire_Ability.ScorchRank2) then _Scorch = Fire_Ability.ScorchRank2; end
-
-	if IsSpellKnown(Frost_Ability.BlizzardRank6) then _Blizzard = Frost_Ability.BlizzardRank6;
-	elseif IsSpellKnown(Frost_Ability.BlizzardRank5) then _Blizzard = Frost_Ability.BlizzardRank5;
-	elseif IsSpellKnown(Frost_Ability.BlizzardRank4) then _Blizzard = Frost_Ability.BlizzardRank4;
-	elseif IsSpellKnown(Frost_Ability.BlizzardRank3) then _Blizzard = Frost_Ability.BlizzardRank3;
-	elseif IsSpellKnown(Frost_Ability.BlizzardRank2) then _Blizzard = Frost_Ability.BlizzardRank2; end
-
-	if IsSpellKnown(Frost_Ability.ConeofColdRank5) then _ConeofCold = Frost_Ability.ConeofColdRank5;
-	elseif IsSpellKnown(Frost_Ability.ConeofColdRank4) then _ConeofCold = Frost_Ability.ConeofColdRank4;
-	elseif IsSpellKnown(Frost_Ability.ConeofColdRank3) then _ConeofCold = Frost_Ability.ConeofColdRank3;
-	elseif IsSpellKnown(Frost_Ability.ConeofColdRank2) then _ConeofCold = Frost_Ability.ConeofColdRank2; end
-
-	if IsSpellKnown(Frost_Ability.FrostWardRank5) then _FrostWard = Frost_Ability.FrostWardRank5;
-	elseif IsSpellKnown(Frost_Ability.FrostWardRank4) then _FrostWard = Frost_Ability.FrostWardRank4;
-	elseif IsSpellKnown(Frost_Ability.FrostWardRank3) then _FrostWard = Frost_Ability.FrostWardRank3;
-	elseif IsSpellKnown(Frost_Ability.FrostWardRank2) then _FrostWard = Frost_Ability.FrostWardRank2; end
-
-	if IsSpellKnown(Frost_Ability.FrostboltRank10) then _Frostbolt = Frost_Ability.FrostboltRank10;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank9) then _Frostbolt = Frost_Ability.FrostboltRank9;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank8) then _Frostbolt = Frost_Ability.FrostboltRank8;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank7) then _Frostbolt = Frost_Ability.FrostboltRank7;	
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank6) then _Frostbolt = Frost_Ability.FrostboltRank6;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank5) then _Frostbolt = Frost_Ability.FrostboltRank5;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank4) then _Frostbolt = Frost_Ability.FrostboltRank4;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank3) then _Frostbolt = Frost_Ability.FrostboltRank3;
-	elseif IsSpellKnown(Frost_Ability.FrostboltRank2) then _Frostbolt = Frost_Ability.FrostboltRank2; end
-
-	--Ranks Defensive
-	if IsSpellKnown(Arc_Ability.MageArmorRank3) then _MageArmor = Arc_Ability.MageArmorRank3;
-	elseif IsSpellKnown(Arc_Ability.MageArmorRank2) then _MageArmor = Arc_Ability.MageArmorRank2; end
-
-	if IsSpellKnown(Arc_Ability.ManaShieldRank6) then _ManaShield = Arc_Ability.ManaShieldRank6;
-	elseif IsSpellKnown(Arc_Ability.ManaShieldRank5) then _ManaShield = Arc_Ability.ManaShieldRank5;
-	elseif IsSpellKnown(Arc_Ability.ManaShieldRank4) then _ManaShield = Arc_Ability.ManaShieldRank4;
-	elseif IsSpellKnown(Arc_Ability.ManaShieldRank3) then _ManaShield = Arc_Ability.ManaShieldRank3;
-	elseif IsSpellKnown(Arc_Ability.ManaShieldRank2) then _ManaShield = Arc_Ability.ManaShieldRank2; end
-
-	if IsSpellKnown(Frost_Ability.IceBarrierRank4) then _IceBarrier = Frost_Ability.IceBarrierRank4;
-	elseif IsSpellKnown(Frost_Ability.IceBarrierRank3) then _IceBarrier = Frost_Ability.IceBarrierRank3;
-	elseif IsSpellKnown(Frost_Ability.IceBarrierRank2) then _IceBarrier = Frost_Ability.IceBarrierRank2; end
-
-	if IsSpellKnown(Frost_Ability.IceArmorRank4) then _IceArmor = Frost_Ability.IceArmorRank4;
-	elseif IsSpellKnown(Frost_Ability.IceArmorRank3) then _IceArmor = Frost_Ability.IceArmorRank3;
-	elseif IsSpellKnown(Frost_Ability.IceArmorRank2) then _IceArmor = Frost_Ability.IceArmorRank2;
-	elseif IsSpellKnown(Frost_Ability.IceArmorRank1) then _IceArmor = Frost_Ability.IceArmorRank1;	
-	elseif IsSpellKnown(Frost_Ability.FrostArmorRank3) then _IceArmor = Frost_Ability.FrostArmorRank3;
-	elseif IsSpellKnown(Frost_Ability.FrostArmorRank2) then _IceArmor = Frost_Ability.FrostArmorRank2; end
-
-	if IsSpellKnown(Frost_Ability.FrostNovaRank4) then _FrostNova = Frost_Ability.FrostNovaRank4;
-	elseif IsSpellKnown(Frost_Ability.FrostNovaRank3) then _FrostNova = Frost_Ability.FrostNovaRank3;
-	elseif IsSpellKnown(Frost_Ability.FrostNovaRank2) then _FrostNova = Frost_Ability.FrostNovaRank2; end
-
-	ids.optionMaxIds = {
-		--Arcane
-		Evocation = _Evocation,
-		PresenceofMind = _PresenceofMind,
-		ArcanePower = _ArcanePower,
-		AmplifyMagic = _AmplifyMagic,
-		ArcaneBrilliance = _ArcaneBrilliance,
-		ArcaneExplosion = _ArcaneExplosion,
-		ArcaneIntellect = _ArcaneIntellect,
-		ArcaneMissiles = _ArcaneMissiles,
-		DampenMagic = _DampenMagic,
-		MageArmor = _MageArmor,
-		--Fire
-		BlastWave = _BlastWave,
-		Combustion = _Combustion,
-		FireBlast =_FireBlast,
-		FireWard =_FireWard,
-		Fireball = _Fireball,
-		Flamestrike = _Flamestrike,
-		FlamestrikeDR = _FlamestrikeDR,
-		Pyroblast =_Pyroblast,
-		Scorch =_Scorch,
-		--Frost
-		Blizzard = _Blizzard,
-		ConeofCold = _ConeofCold,
-		Frostbolt = _Frostbolt,
-		IceBarrier = _IceBarrier,
-		IceArmor = _IceArmor,
-		FrostNova = _FrostNova,
-		FrostWard = _FrostWard,
-		--Runes
-		RuneArcaneBlast = _RuneArcaneBlast,
-		RuneArcaneSurge = _RuneArcaneSurge,
-		RuneIceLance = _RuneIceLance,
-		RuneIcyVeins = _RuneIcyVeins,
-		RuneLivingBomb = _RuneLivingBomb,
-		RuneLivingFlame = _RuneLivingFlame,
-		RuneMassRegeneration = _RuneMassRegeneration,
-		RuneRegeneration = _RuneRegeneration,
-		RuneRewindTime = _RuneRewindTime,
-	}
-end
-ConROC:UpdateSpellID()
-
-local wChillEXP = 0;
-local fVulEXP = 0;
-local fStrikeEXP = 0;
-local fStrikeDREXP = 0;
-
-function ConROC:EnableRotationModule()
-	self.Description = "Mage";
-	self.NextSpell = ConROC.Mage.Damage;
-
-	self:RegisterEvent('UNIT_SPELLCAST_SUCCEEDED');
-	self:RegisterEvent("PLAYER_TALENT_UPDATE");
-	self.lastSpellId = 0;
-	
-	ConROC:SpellmenuClass();	
-end
 function ConROC:PLAYER_TALENT_UPDATE()
 	ConROC:SpecUpdate();
     ConROC:closeSpellmenu();
 end
 
-function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
-	ConROC:UpdateSpellID()
+local Racial, Spec, Caster, Ability, Rank, Arc_Talent, Fire_Talent, Frost_Talent, Runes, Buff, Debuff = ids.Racial, ids.Spec, ids.Caster, ids.Ability, ids.Rank, ids.Arcane_Talent, ids.Fire_Talent, ids.Frost_Talent, ids.Runes, ids.Buff, ids.Debuff;
+local wChillEXP = 0;
+local fVulEXP = 0;
+local fStrikeEXP = 0;
+local fStrikeDREXP = 0;
 
---Character
-	local plvl	= UnitLevel('player');
---Racials
+--Info
+local _Player_Level = UnitLevel("player");
+local _Player_Percent_Health = ConROC:PercentHealth('player');
+local _is_PvP = ConROC:IsPvP();
+local _in_combat = UnitAffectingCombat('player');
+local _party_size = GetNumGroupMembers();
+local _is_PC = UnitPlayerControlled("target");
+local _is_Enemy = ConROC:TarHostile();
+local _Target_Health = UnitHealth('target');
+local _Target_Percent_Health = ConROC:PercentHealth('target');
 
 --Resources
-	local mana = UnitPower('player', Enum.PowerType.Mana);
-	local manaMax = UnitPowerMax('player', Enum.PowerType.Mana);
-	local manaPercent = math.max(0, mana) / math.max(1, manaMax) * 100;
-
-
---Abilties	
-	local ampMagRDY	= ConROC:AbilityReady(_AmplifyMagic, timeShift);
-		local ampMagBUFF = ConROC:Buff(_AmplifyMagic, timeShift);
-	local aExpRDY = ConROC:AbilityReady(_ArcaneExplosion, timeShift);
-	local aIntRDY = ConROC:AbilityReady(_ArcaneIntellect, timeShift);
-		local aIntBUFF = ConROC:Buff(_ArcaneIntellect, timeShift);
-		local aBriBUFF = ConROC:Buff(_ArcaneBrilliance, timeShift);
-	local aMissRDY = ConROC:AbilityReady(_ArcaneMissiles, timeShift);
-	local aPowerRDY = ConROC:AbilityReady(_ArcanePower, timeShift);
-	local blinkRDY = ConROC:AbilityReady(Arc_Ability.Blink, timeShift);
-	local conAgateRDY = ConROC:AbilityReady(Arc_Ability.ConjureManaAgate, timeShift);
-	local conJadeRDY = ConROC:AbilityReady(Arc_Ability.ConjureManaJade, timeShift);
-	local conCitRDY = ConROC:AbilityReady(Arc_Ability.ConjureManaCitrine, timeShift);
-	local conRubyRDY = ConROC:AbilityReady(Arc_Ability.ConjureManaRuby, timeShift);
-	local cSpellRDY = ConROC:AbilityReady(Arc_Ability.Counterspell, timeShift);
-	local dampenMagRDY = ConROC:AbilityReady(_DampenMagic, timeShift);
-		local dampenMagBUFF = ConROC:Buff(_DampenMagic, timeShift);
-	local evoRDY = ConROC:AbilityReady(_Evocation, timeShift);
-	local pomRDY = ConROC:AbilityReady(_PresenceofMind, timeShift);
-		local pomBUFF = ConROC:Buff(_PresenceofMind, timeShift);
-	local bWaveRDY = ConROC:AbilityReady(_BlastWave, timeShift);
-	if ConROC:TalentChosen(Spec.Fire, Fire_Talent.Combustion) then
-        local combRDY = ConROC:AbilityReady(_Combustion, timeShift);
-    end
-	local fBlastRDY = ConROC:AbilityReady(_FireBlast, timeShift);
-	local fBallRDY = ConROC:AbilityReady(_Fireball, timeShift);
-		local fBallDEBUFF = ConROC:TargetDebuff(_Fireball, timeShift);
-	local fStrikeRDY = ConROC:AbilityReady(_Flamestrike, timeShift);
-		local fStrikeDUR = fStrikeEXP - GetTime();
-    local fStrikeDRRDY = ConROC:AbilityReady(_FlamestrikeDR, timeShift);
-        local fStrikeDRDUR = fStrikeDREXP - GetTime();
-	local pBlastRDY = ConROC:AbilityReady(_Pyroblast, timeShift);
-	local scorRDY = ConROC:AbilityReady(_Scorch, timeShift);
-	local blizRDY = ConROC:AbilityReady(_Blizzard, timeShift);
-	local cSnapRDY = ConROC:AbilityReady(Frost_Ability.ColdSnap, timeShift);
-	local cofcRDY = ConROC:AbilityReady(_ConeofCold, timeShift);
-	local frBoltRDY = ConROC:AbilityReady(_Frostbolt, timeShift);
-		local frBoltDEBUFF = ConROC:TargetDebuff(_Frostbolt, timeShift);
-	
-	   local chillDEBUFF = ConROC:TargetDebuff(Target_Debuff.Chilled, timeShift);
-	   local wChillDEBUFF, wChillCount = ConROC:TargetDebuff(Target_Debuff.WintersChill);
-	   local wChillDUR = wChillEXP - GetTime();
-	   local fVulDEBUFF, fVulCount = ConROC:TargetDebuff(Target_Debuff.FireVulnerability);
-	   local fVulDUR = fVulEXP - GetTime();
-	   local frNovaDEBUFF = ConROC:TargetDebuff(_FrostNova);
-			
-	local _, impArcPoints = ConROC:TalentChosen(Spec.Arcane, Arc_Talent.ImprovedArcaneMissiles)
-	
---runes
-	local raBlastRDY = ConROC:AbilityReady(_RuneArcaneBlast, timeShift);
-		local raBlastDEBUFF, raBlastCount = ConROC:TargetDebuff(Target_Debuff.ArcaneBlast);
-	local raSurgeRDY = ConROC:AbilityReady(_RuneArcaneSurge, timeShift);
-	local riLanceRDY = ConROC:AbilityReady(_RuneIceLance, timeShift);
-	local riVeinsRDY = ConROC:AbilityReady(_RuneIcyVeins, timeShift);
-	local rlBombRDY = ConROC:AbilityReady(_RuneLivingBomb, timeShift);
-		local rlBombDEBUFF = ConROC:TargetDebuff(_RuneLivingBomb, timeShift);
-	local rlFlameRDY = ConROC:AbilityReady(_RuneLivingFlame, timeShift);
-		local rlFlameDEBUFF = ConROC:TargetDebuff(Target_Debuff.LivingFlame, timeShift);
-	local rmRegenRDY = ConROC:AbilityReady(_RuneMassRegeneration, timeShift);
-	local rRegenRDY = ConROC:AbilityReady(_RuneRegeneration, timeShift);
-	local rrTimeRDY = ConROC:AbilityReady(_RuneRewindTime, timeShift);
-	local rFoFBUFF, rFoFCount, rFoFDUR = ConROC:UnitAura(Player_Buff.FingersofFrost, timeShift,'player', 'HELPFUL', false);
+local _Mana, _Mana_Max, _Mana_Percent = ConROC:PlayerPower('Mana');
 
 --Conditions
-	local inMelee = ConROC:IsMeleeRange()--checking range 5 yards
-	local targetPh = ConROC:PercentHealth('target');		
-	local hasWand = HasWandEquipped();
-   	local moving = ConROC:PlayerSpeed();	
-   	local incombat = UnitAffectingCombat('player');
+local _Queue = 0;
+local _Has_Wand = HasWandEquipped();
+local _is_moving = ConROC:PlayerSpeed();
+local _enemies_in_melee, _target_in_melee = ConROC:Targets("Melee");
+local _enemies_in_10yrds, _target_in_10yrds = ConROC:Targets("10");
+local _enemies_in_20yrds, _target_in_20yrds = ConROC:Targets("20");
+local _enemies_in_40yrds, _target_in_40yrds = ConROC:Targets("40");
+local _can_Execute = _Target_Percent_Health < 20;
+
+--Racials
+local _Berserking, _Berserking_RDY = _, _;
+local _EscapeArtist, _EscapeArtist_RDY = _, _;
+local _Perception, _Perception_RDY = _, _;
+
+function ConROC:Stats()
+	_Player_Level = UnitLevel("player");
+	_Player_Percent_Health = ConROC:PercentHealth('player');
+	_is_PvP = ConROC:IsPvP();
+	_in_combat = UnitAffectingCombat('player');
+	_party_size = GetNumGroupMembers();
+	_is_PC = UnitPlayerControlled("target");
+	_is_Enemy = ConROC:TarHostile();
+	_Target_Health = UnitHealth('target');
+	_Target_Percent_Health = ConROC:PercentHealth('target');
+
+	_Mana, _Mana_Max, _Mana_Percent = ConROC:PlayerPower('Mana');
+
+	_Queue = 0;
+	_Has_Wand = HasWandEquipped();
+	_is_moving = ConROC:PlayerSpeed();
+	_enemies_in_melee, _target_in_melee = ConROC:Targets("Melee");
+	_enemies_in_10yrds, _target_in_10yrds = ConROC:Targets("10");
+	_enemies_in_20yrds, _target_in_20yrds = ConROC:Targets("20");
+	_enemies_in_40yrds, _target_in_40yrds = ConROC:Targets("40");
+	_can_Execute = _Target_Percent_Health < 20;
+
+	_Berserking, _Berserking_RDY = ConROC:AbilityReady(Racial.Berserking, timeShift);
+	_EscapeArtist, _EscapeArtist_RDY = ConROC:AbilityReady(Racial.EscapeArtist, timeShift);
+	_Perception, _Perception_RDY = ConROC:AbilityReady(Racial.Perception, timeShift);
+end
+
+function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
+	ConROC:UpdateSpellID();
+	ConROC:Stats();
+
+--Abilties	
+	local _AmplifyMagic, _AmplifyMagic_RDY	= ConROC:AbilityReady(Ability.AmplifyMagic, timeShift);
+		local _AmplifyMagic_BUFF = ConROC:Aura(_AmplifyMagic, timeShift);
+	local _ArcaneExplosion, _ArcaneExplosion_RDY = ConROC:AbilityReady(Ability.ArcaneExplosion, timeShift);
+	local _ArcaneIntellect, _ArcaneIntellect_RDY = ConROC:AbilityReady(Ability.ArcaneIntellect, timeShift);
+		local _ArcaneIntellect_BUFF = ConROC:Aura(_ArcaneIntellect, timeShift);
+	local _ArcaneBrilliance, _ArcaneBrilliance_RDY = ConROC:AbilityReady(Ability.ArcaneBrilliance, timeShift);
+		local _ArcaneBrilliance_BUFF = ConROC:Aura(_ArcaneBrilliance, timeShift);
+	local _ArcaneMissiles, _ArcaneMissiles_RDY = ConROC:AbilityReady(Ability.ArcaneMissiles, timeShift);
+	local _ArcanePower, _ArcanePower_RDY = ConROC:AbilityReady(Ability.ArcanePower, timeShift);
+	local _Blink, _Blink_RDY = ConROC:AbilityReady(Ability.Blink, timeShift);
+	local _ConjureManaAgate, _ConjureManaAgate_RDY = ConROC:AbilityReady(Ability.ConjureManaAgate, timeShift);
+	local _ConjureManaJade, _ConjureManaJade_RDY = ConROC:AbilityReady(Ability.ConjureManaJade, timeShift);
+	local _ConjureManaCitrine, _ConjureManaCitrine_RDY = ConROC:AbilityReady(Ability.ConjureManaCitrine, timeShift);
+	local _ConjureManaRuby, _ConjureManaRuby_RDY = ConROC:AbilityReady(Ability.ConjureManaRuby, timeShift);
+	local _Counterspell, _Counterspell_RDY = ConROC:AbilityReady(Ability.Counterspell, timeShift);
+	local _DampenMagic, _DampenMagic_RDY = ConROC:AbilityReady(Ability.DampenMagic, timeShift);
+		local _DampenMagic_BUFF = ConROC:Aura(_DampenMagic, timeShift);
+	local _Evocation, _Evocation_RDY = ConROC:AbilityReady(Ability.Evocation, timeShift);
+	local _PresenceofMind, _PresenceofMind_RDY = ConROC:AbilityReady(Ability.PresenceofMind, timeShift);
+		local _PresenceofMind_BUFF = ConROC:Aura(_PresenceofMind, timeShift);
+	local _BlastWave, _BlastWave_RDY = ConROC:AbilityReady(Ability.BlastWave, timeShift);
+    local _Combustion, _Combustion_RDY = ConROC:AbilityReady(Ability.Combustion, timeShift);
+	local _FireBlast, _FireBlast_RDY = ConROC:AbilityReady(Ability.FireBlast, timeShift);
+	local _Fireball, _Fireball_RDY = ConROC:AbilityReady(Ability.Fireball, timeShift);
+		local _Fireball_DEBUFF = ConROC:TargetAura(_Fireball, timeShift);
+	local _Flamestrike, _Flamestrike_RDY = ConROC:AbilityReady(Ability.Flamestrike, timeShift);
+		local _Flamestrike_DUR = fStrikeEXP - GetTime();
+    local _FlamestrikeDR, _FlamestrikeDR_RDY = ConROC:AbilityReady(Ability.FlamestrikeDR, timeShift);
+        local _FlamestrikeDR_DUR = fStrikeDREXP - GetTime();
+	local _Pyroblast, _Pyroblast_RDY = ConROC:AbilityReady(Ability.Pyroblast, timeShift);
+	local _Scorch, _Scorch_RDY = ConROC:AbilityReady(Ability.Scorch, timeShift);
+	local _Blizzard, _Blizzard_RDY = ConROC:AbilityReady(Ability.Blizzard, timeShift);
+	local _ColdSnap, _ColdSnap_RDY = ConROC:AbilityReady(Ability.ColdSnap, timeShift);
+	local _ConeofCold, _ConeofCold_RDY = ConROC:AbilityReady(Ability.ConeofCold, timeShift);
+	local _Frostbolt, _Frostbolt_RDY = ConROC:AbilityReady(Ability.Frostbolt, timeShift);
+		local _Frostbolt_DEBUFF = ConROC:TargetAura(_Frostbolt, timeShift);
+	local _FrostNova, _FrostNova_RDY = ConROC:AbilityReady(Ability.FrostNova, timeShift);
+		local _FrostNova_DEBUFF = ConROC:TargetAura(_FrostNova);
+
+	   	local _Chilled_DEBUFF = ConROC:TargetAura(Debuff.Chilled, timeShift);
+	   	local _WintersChill_DEBUFF, _WintersChill_COUNT = ConROC:TargetAura(Debuff.WintersChill);
+	   	local _WintersChill_DUR = wChillEXP - GetTime();
+	   	local _FireVulnerability_DEBUFF, _FireVulnerability_COUNT = ConROC:TargetAura(Debuff.FireVulnerability);
+	   	local _FireVulnerability_DUR = fVulEXP - GetTime();
+
+	local _, impArcPoints = ConROC:TalentChosen(Spec.Arcane, Arc_Talent.ImprovedArcaneMissiles)
+
+--Runes
+	local _ArcaneBlast, _ArcaneBlast_RDY = ConROC:AbilityReady(Runes.ArcaneBlast, timeShift);
+		local _, _ArcaneBlast_COUNT = ConROC:TargetAura(_ArcaneBlast);
+	local _ArcaneSurge, _ArcaneSurge_COUNT = ConROC:AbilityReady(Runes.ArcaneSurge, timeShift);
+	local _IceLance, _IceLance_RDY = ConROC:AbilityReady(Runes.IceLance, timeShift);
+	local _IcyVeins, _IcyVeins_RDY = ConROC:AbilityReady(Runes.IcyVeins, timeShift);
+	local _LivingBomb, _LivingBomb_RDY = ConROC:AbilityReady(Runes.LivingBomb, timeShift);
+		local _LivingBomb_DEBUFF = ConROC:TargetAura(_LivingBomb, timeShift);
+	local _LivingFlame, _LivingFlame_RDY = ConROC:AbilityReady(Runes.LivingFlame, timeShift);
+		local _LivingFlame_DEBUFF = ConROC:TargetAura(Debuff.LivingFlame, timeShift);
+	local _MassRegeneration, _MassRegeneration_RDY = ConROC:AbilityReady(Runes.MassRegeneration, timeShift);
+	local _Regeneration, _Regeneration_RDY = ConROC:AbilityReady(Runes.Regeneration, timeShift);
+	local _RewindTime, _RewindTime_RDY = ConROC:AbilityReady(Runes.RewindTime, timeShift);
+	local _FingersofFrost_BUFF, _FingersofFrost_COUNT, _FingersofFrost_DUR = ConROC:Aura(Buff.FingersofFrost, timeShift);
+
+--Conditions
     local resting = IsResting();
     local mounted = IsMounted();
     local onVehicle = UnitHasVehicleUI("player");
-	local tarInAoe = 0;
-
-	if ConROC_AoEButton:IsVisible() and IsSpellKnown(_ArcaneExplosion) then
-		tarInAoe = ConROC:Targets(_ArcaneExplosion);
-	end
 
     if onVehicle then
         return nil
     end
-	
---Indicators	
-	ConROC:AbilityBurst(_Evocation, evoRDY and manaPercent <= 10);
-	ConROC:AbilityBurst(_PresenceofMind, pomRDY and incombat);
-	ConROC:AbilityBurst(_ArcanePower, aPowerRDY and incombat and (not ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) or (ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) and wChillCount == 5))) ;	
-	ConROC:AbilityBurst(_Combustion, combRDY and incombat and (not ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) or (ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVuCount == 5)));
 
-	ConROC:AbilityRaidBuffs(_ArcaneIntellect, aIntRDY and not (aIntBUFF or aBriBUFF));
-    ConROC:AbilityInterrupt(_Counterspell, ConROC:Interrupt() and cSpellRDY)
-	
+--Indicators	
+	ConROC:AbilityBurst(_Evocation, _Evocation_RDY and _Mana_Percent <= 10);
+	ConROC:AbilityBurst(_PresenceofMind, _PresenceofMind_RDY and _in_combat);
+	ConROC:AbilityBurst(_ArcanePower, _ArcanePower_RDY and _in_combat and (not ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) or (ConROC:TalentChosen(Spec.Frost, Frost_Talent.WintersChill) and _WintersChill_COUNT == 5))) ;
+	ConROC:AbilityBurst(_Combustion, _Combustion_RDY and _in_combat and (not ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) or (ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT == 5)));
+
+	ConROC:AbilityRaidBuffs(_ArcaneIntellect, _ArcaneIntellect_RDY and not (_ArcaneIntellect_BUFF or _ArcaneBrilliance_BUFF));
+    ConROC:AbilityInterrupt(_Counterspell, _Counterspell_RDY and ConROC:Interrupt())
+
 --Warnings
-	
+
 --Rotations
-	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and evoRDY and manaPercent < 10 then
+	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and _Evocation_RDY and _Mana_Percent < 10 then
 		return _Evocation;
 	end
+
 	if ConROC.Seasons.IsSoD then --DPS rotation for SoD
-		if plvl < 10 or not currentSpecID then
-			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
-		    	return _RuneIcyVeins;
+		if _Player_Level < 10 or not currentSpecID then
+			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+		    	return _IcyVeins;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
-		    	return _RuneLivingFlame;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+		    	return _LivingFlame;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-		    	return _RuneLivingBomb;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+		    	return _LivingBomb;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-		    	return _RuneArcaneBlast;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+		    	return _ArcaneBlast;
 		    end
-		    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and raSurgeRDY then
+
+		    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and _ArcaneSurge_COUNT then
 		    	return _RuneArcaneSurge;
 		    end]]
-		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFCount > 1) then
-		    	return _RuneIceLance;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
+		    	return _IceLance;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and rmRegenRDY then
-		    	return _RuneMassRegeneration;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and _MassRegeneration_RDY then
+		    	return _MassRegeneration;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and rRegenRDY then
-		    	return _RuneRegeneration;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and _Regeneration_RDY then
+		    	return _Regeneration;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and rrTimeRDY then
-		    	return _RuneRewindTime;
+
+		    if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and _RewindTime_RDY then
+		    	return _RewindTime;
 		    end
+
 		    if ConROC_AoEButton:IsVisible() then
-		    	if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and aExpRDY and inMelee then
+		    	if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
 			        return _ArcaneExplosion;
 			    end
 
-			    if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and fStrikeRDY and not inMelee and fStrikeDUR <= 2 then
+			    if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
 			        return _Flamestrike;
-			    end 
-			    
-			    if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and blizRDY and not inMelee then
+			    end
+
+			    if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
 			        return _Blizzard;
 			    end
 			end
-	       	if fBlastRDY and (targetPh <= 25 or inMelee) and not ConROC_AoEButton:IsVisible() then
+
+	       	if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
 		        return _FireBlast;
 		    end
 
-		    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY and rFoFCount == 1 then
+		    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
 		        return _Frostbolt;
 		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFBUFF) then
+		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
 		    	return _RuneIceLance;
 		    end
-		    
-		    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and fBallRDY then
+
+		    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
 		        return _Fireball;
 		    end
-	    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
+
+	    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
 		        return _ArcaneMissiles;
 		    end
-	        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
+
+	        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
 		        return _Frostbolt;
 		    end
-        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+
+        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
             	return Caster.Shoot;
         	end
 		else
 			if (currentSpecID == ids.Spec.Arcane) then
 				if ConROC_AoEButton:IsVisible() then
-					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
 				    	return _RuneLivingFlame;
 				    end
-				    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+
+				    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
 				    	return _RuneArcaneBlast;
 				    end]]
-					if aExpRDY and inMelee then
+
+					if _ArcaneExplosion_RDY and _target_in_melee then
 				        return _ArcaneExplosion;
 					end
 				else
-					if aExpRDY and ((targetPh <= 25 and inMelee) or inMelee) then
+					if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
 				        return _ArcaneExplosion;
-					end	
-					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
-				    	return _RuneLivingFlame;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+				    	return _LivingFlame;
 				    end
-				    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and raBlastRDY and raBlastCount < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-				    	return _RuneArcaneBlast;
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+				    	return _ArcaneBlast;
 				    end
-			    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
+
+			    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
 				        return _ArcaneMissiles;
 				    end
 				end
 			elseif (currentSpecID == ids.Spec.Fire) then
 				if ConROC_AoEButton:IsVisible() then
-					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
 				        return _ArcaneExplosion;
-					elseif fBlastRDY and (targetPh <= 25 or inMelee) then
+					elseif _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
 				        return _FireBlast;
 					end
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-				    	return _RuneLivingBomb;
-				    end				
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY and ConROC_AoEButton:IsVisible() then
-				    	return _RuneLivingFlame;
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+				    	return _LivingBomb;
 				    end
-					if aExpRDY and inMelee then
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
+				    	return _LivingFlame;
+				    end
+
+					if _ArcaneExplosion_RDY and _target_in_melee then
 				        return _ArcaneExplosion;
 					end
 				else
-					if pBlastRDY and not incombat then
+					if _Pyroblast_RDY and not _in_combat then
 						return _Pyroblast
 					end
-					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+
+					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
 				        return _ArcaneExplosion;
-					end	
-					if fBlastRDY and (targetPh <= 25 or inMelee) then
+					end
+
+					if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
 				        return _FireBlast;
 					end
-					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY then
-				    	return _RuneLivingFlame;
+
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+				    	return _LivingFlame;
 				    end
-					
-				    if scorRDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVulCount < 5 then
+
+				    if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
 				        return _Scorch;
 				    end
 
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-				    	return _RuneLivingBomb;
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+				    	return _LivingBomb;
 				    end
-				    if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
-						return _RuneIcyVeins;
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+						return _IcyVeins;
 					end
-				    if fBallRDY then
+
+				    if _Fireball_RDY then
 				        return _Fireball;
 				    end
-		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+
+		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
 		            	return Caster.Shoot;
 		        	end
 				end
 			elseif (currentSpecID == ids.Spec.Frost) then
 				if ConROC_AoEButton:IsVisible() then
-					if aExpRDY and ((targetPh <= 25 and inMelee) or inMelee) then
+					if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
 				        return _ArcaneExplosion;
-					end	
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-				    	return _RuneLivingBomb;
-				    end				
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and rlFlameRDY and ConROC_AoEButton:IsVisible() then
-				    	return _RuneLivingFlame;
+					end
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+				    	return _LivingBomb;
 				    end
-				    if blizRDY then
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
+				    	return _LivingFlame;
+				    end
+
+				    if _Blizzard_RDY then
 				    	return _Blizzard
 				    end
 				else
-					if aExpRDY and (targetPh <= 25 or inMelee) and tarInAoe > 2 then
+					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
 				        return _ArcaneExplosion;
-					end	
-					if fBlastRDY and (targetPh <= 25 or inMelee) then
+					end
+
+					if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
 				        return _FireBlast;
 					end
-					
-					if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFCount > 1) then
-				    	return _RuneIceLance;
+
+					if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
+				    	return _IceLance;
 				    end
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and rlBombRDY and not rlBombDEBUFF and ((targetPh >= 5 and ConROC:Raidmob()) or (targetPh >= 20 and not ConROC:Raidmob())) then
-				    	return _RuneLivingBomb;
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+				    	return _LivingBomb;
 				    end
-					if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and riVeinsRDY then
-				    	return _RuneIcyVeins;
+
+					if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+				    	return _IcyVeins;
 				    end
-				    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY and rFoFCount == 1 then
+
+				    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
 				        return _Frostbolt;
 				    end
-				    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and riLanceRDY and (moving or rFoFBUFF) then
-				    	return _RuneIceLance;
+
+				    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
+				    	return _IceLance;
 				    end
-			        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
+
+			        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
 				        return _Frostbolt;
 				    end
-		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+
+		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
 		            	return Caster.Shoot;
 		        	end
 				end
-			end	
+			end
 		end
 	else --DPS rotation for Classic Era & Classic HC
-		
-	    if pBlastRDY and (not incombat or pomBUFF) then
+	    if _Pyroblast_RDY and (not _in_combat or _PresenceofMind_BUFF) then
 	        return _Pyroblast;
 	    end
-	    
-	    if wChillCount >= 1 and wChillDUR <= 4 then
+
+	    if _WintersChill_COUNT >= 1 and _WintersChill_DUR <= 4 then
 	        return _Frostbolt;
 	    end
-	    
-	    if fVulCount >= 1 and fVulDUR <= 4 then
+
+	    if _FireVulnerability_COUNT >= 1 and _FireVulnerability_DUR <= 4 then
 	        return _Scorch;
-	    end 
-	    
-	    if cofcRDY and frNovaDEBUFF and inMelee then
+	    end
+
+	    if _ConeofCold_RDY and _FrostNova_DEBUFF and _target_in_melee then
 	        return _ConeofCold;
 	    end
-	    
-	    if fBlastRDY and (targetPh <= 25 or inMelee) and not ConROC_AoEButton:IsVisible() then
+
+	    if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
 	        return _FireBlast;
 	    end
 
-	    if ConROC:CheckBox(ConROC_SM_Option_UseWand) and hasWand and ((manaPercent <= 10 and not evoRDY) or targetPh <= 5) then
+	    if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
 	        return Caster.Shoot;
 	    end
-	    
-	    if ConROC_AoEButton:IsVisible() and bWaveRDY and inMelee then 
+
+	    if ConROC_AoEButton:IsVisible() and _BlastWave_RDY and _target_in_melee then
 	        return _BlastWave;
 	    end
-	    
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and aExpRDY and inMelee then
+
+	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
 	        return _ArcaneExplosion;
 	    end
 
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and fStrikeRDY and not inMelee and fStrikeDUR <= 2 then
+	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
 	        return _Flamestrike;
-	    end 
-	    
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and blizRDY and not inMelee then
+	    end
+
+	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
 	        return _Blizzard;
-	    end 
-	    if ConROC:CheckBox(ConROC_SM_CD_Combustion) and combRDY and incombat and ConROC:TalentChosen(Spec.Fire, Fire_Talent.Combustion) and fVulCount == 5 then
+	    end
+
+	    if ConROC:CheckBox(ConROC_SM_CD_Combustion) and _Combustion_RDY and _in_combat and ConROC:TalentChosen(Spec.Fire, Fire_Talent.Combustion) and _FireVulnerability_COUNT == 5 then
 	        return _Combustion
 	    end
-	    if scorRDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and fVulCount < 5 then
+
+	    if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
 	        return _Scorch;
 	    end
-	    
-	    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and fBallRDY then
+
+	    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
 	        return _Fireball;
 	    end
-	    
-	    if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and aMissRDY then
+
+	    if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
 	        return _ArcaneMissiles;
 	    end
-	    
-	    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and frBoltRDY then
-	        return _Frostbolt;
-	    end 
-    end
 
-    return nil; 		
+	    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
+	        return _Frostbolt;
+	    end
+    end
+return nil;
 end
 
 function ConROC.Mage.Defense(_, timeShift, currentSpell, gcd)
---Character
-	local plvl	= UnitLevel('player');
+	ConROC:UpdateSpellID();
+	ConROC:Stats();
 
---Racials
-
---Resources
-	local mana			= UnitPower('player', Enum.PowerType.Mana);
-	local manaMax		= UnitPowerMax('player', Enum.PowerType.Mana);
-	local manaPercent	= math.max(0, mana) / math.max(1, manaMax) * 100;
-	
 --Abilties
-	local mageArmorRDY = ConROC:AbilityReady(_MageArmor, timeShift);
-		local mageArmorBUFF = ConROC:Buff(_MageArmor, timeShift);
-	local manaShieldRDY = ConROC:AbilityReady(_ManaShield, timeShift);
-		local manaShieldBUFF = ConROC:Buff(_ManaShield, timeShift);	
-	local iBarRDY = ConROC:AbilityReady(_IceBarrier, timeShift);
-		local iBarBUFF = ConROC:Buff(_IceBarrier, timeShift);	
-	local iArmorRDY = ConROC:AbilityReady(_IceArmor, timeShift);
-		local iArmorBUFF = ConROC:Buff(_IceArmor, timeShift);	
-	local frNovaRDY = ConROC:AbilityReady(_FrostNova, timeShift);
+	local _MageArmor, _MageArmor_RDY = ConROC:AbilityReady(Ability.MageArmor, timeShift);
+		local _MageArmor_BUFF = ConROC:Aura(_MageArmor, timeShift);
+	local _ManaShield, _ManaShield_RDY = ConROC:AbilityReady(Ability.ManaShield, timeShift);
+		local _ManaShield_BUFF = ConROC:Aura(_ManaShield, timeShift);
+	local _IceBarrier, _IceBarrier_RDY = ConROC:AbilityReady(Ability.IceBarrier, timeShift);
+		local _IceBarrier_BUFF = ConROC:Aura(_IceBarrier, timeShift);
+	local _IceArmor, _IceArmor_RDY = ConROC:AbilityReady(Ability.IceArmor, timeShift);
+		local _IceArmor_BUFF = ConROC:Aura(_IceArmor, timeShift);
+	local _FrostNova, _FrostNova_RDY = ConROC:AbilityReady(Ability.FrostNova, timeShift);
 
 --Conditions
-	local inMelee = ConROC:IsMeleeRange()--CheckInteractDistance("target", 3);	
-	local targetPh = ConROC:PercentHealth('target');
     local onVehicle = UnitHasVehicleUI("player");
-	
+
     if onVehicle then
         return nil
     end
-	
+
 --Indicators
 
-	
 --Rotations
-	if ConROC:CheckBox(ConROC_SM_Armor_Ice) and iArmorRDY and not iArmorBUFF then
+	if ConROC:CheckBox(ConROC_SM_Armor_Ice) and _IceArmor_RDY and not _IceArmor_BUFF then
 		return _IceArmor;
 	end
-	
-	if ConROC:CheckBox(ConROC_SM_Armor_Mage) and mageArmorRDY and not mageArmorBUFF then
+
+	if ConROC:CheckBox(ConROC_SM_Armor_Mage) and _MageArmor_RDY and not _MageArmor_BUFF then
 		return _MageArmor;
 	end
-	
-	if frNovaRDY and inMelee and targetPh >= 20 then
-		return _FrostNova;
-	end	
 
-	if iBarRDY and not iBarBUFF then
+	if _FrostNova_RDY and _target_in_melee and _Target_Percent_Health >= 20 then
+		return _FrostNova;
+	end
+
+	if _IceBarrier_RDY and not _IceBarrier_BUFF then
 		return _IceBarrier;
 	end
-	
-	return nil;
+return nil;
 end
 
 function ConROC:JustCasted(spellID)
-	if spellID == _Frostbolt then
+	if spellID == Ability.Frostbolt then
 		local expTime = GetTime() + 15;
 		wChillEXP = expTime;
 	end
 
-    if spellID == _Flamestrike then
+    if spellID == Ability.Flamestrike then
 		local expTime = GetTime() + 8;
 		fStrikeEXP = expTime;
 	end
 
-    if spellID == _FlamestrikeDR then
+    if spellID == Ability.FlamestrikeDR then
         local expTime = GetTime() + 8;
         fStrikeDREXP = expTime;
     end
 
-    if spellID == _Scorch then
+    if spellID == Ability.Scorch then
 		local expTime = GetTime() + 30;
 		fVulEXP = expTime;
 	end
