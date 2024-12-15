@@ -53,13 +53,12 @@ ids.Ability = {
 	Blizzard = 10,
 	ColdSnap = 12472,
 	ConeofCold = 120,
-	FrostArmor = 168,
 	FrostNova = 122,
 	FrostWard = 6143,
 	Frostbolt = 116,
 	IceBarrier = 11426,
 	IceBlock = 11958,
-	IceArmor = 7302,
+	IceArmor = 168,
 }
 ids.Rank = {
 --Arcane
