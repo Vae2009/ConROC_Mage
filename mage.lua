@@ -216,7 +216,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 		    end
 
 		    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and _ArcaneSurge_COUNT then
-		    	return _RuneArcaneSurge;
+		    	return _ArcaneSurge;
 		    end]]
 
 		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
@@ -257,7 +257,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 		        return _Frostbolt;
 		    end
 		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
-		    	return _RuneIceLance;
+		    	return _IceLance;
 		    end
 
 		    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
@@ -279,11 +279,11 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 			if (currentSpecID == ids.Spec.Arcane) then
 				if ConROC_AoEButton:IsVisible() then
 					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
-				    	return _RuneLivingFlame;
+				    	return _LivingFlame;
 				    end
 
 				    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-				    	return _RuneArcaneBlast;
+				    	return _ArcaneBlast;
 				    end]]
 
 					if _ArcaneExplosion_RDY and _target_in_melee then

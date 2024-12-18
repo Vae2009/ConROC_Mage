@@ -123,7 +123,7 @@ function ConROC:SpellmenuClass()
 	    frameName = "Runes",
 	    spells = {
 	      {spellID = ids.Runes.ArcaneBlast, spellCheckbox = "Rune_ArcaneBlast", reqLevel = 1, type = "spell"},
-	      {spellID = ids.Runes.ArcaneBlast, spellCheckbox = "Rune_ArcaneBlastCount", reqLevel = 1, type = "textfield", icon = ids.Runes.ArcaneBlast, customName = "Number of Arcane Blast"},
+	      {spellID = ids.Runes.ArcaneBlast, spellCheckbox = "Rune_ArcaneBlastCount", reqLevel = 1, type = "textfield", icon = 230237, customName = "Number of Arcane Blast"},
 	      --{spellID = ids.Runes.ArcaneSurge, spellCheckbox = "Rune_ArcaneSurge", reqLevel = 1, type = "spell"},
 	      {spellID = ids.Runes.IceLance, spellCheckbox = "Rune_IceLance", reqLevel = 1, type = "spell"},
 	      {spellID = ids.Runes.IcyVeins, spellCheckbox = "Rune_IcyVeins", reqLevel = 1, type = "spell"},
