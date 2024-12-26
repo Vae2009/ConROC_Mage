@@ -1,16 +1,15 @@
 ConROC.Mage = {};
 
 local ConROC_Mage, ids = ...;
-local currentSpecName;
-local currentSpecID;
 
 function ConROC:EnableRotationModule()
 	self.Description = "Mage";
 	self.NextSpell = ConROC.Mage.Damage;
 
 	self:RegisterEvent('UNIT_SPELLCAST_SUCCEEDED');
-	self:RegisterEvent("PLAYER_TALENT_UPDATE");
 	self.lastSpellId = 0;
+
+	ConROC:SpellmenuClass();
 end
 
 function ConROC:EnableDefenseModule()
@@ -25,31 +24,14 @@ function ConROC:UNIT_SPELLCAST_SUCCEEDED(event, unitID, lineID, spellID)
 	ConROC:JustCasted(spellID);
 end
 
-function ConROC:SpecUpdate()
-	currentSpecName = ConROC:currentSpec()
-    currentSpecID = ConROC:currentSpec("ID")
-
-	if currentSpecName then
-	   ConROC:Print(self.Colors.Info .. "Current spec:", self.Colors.Success ..  currentSpecName)
-	else
-	   ConROC:Print(self.Colors.Error .. "You do not currently have a spec.")
-	end
-end
-
-ConROC:SpecUpdate()
-
-function ConROC:PLAYER_TALENT_UPDATE()
-	ConROC:SpecUpdate();
-    ConROC:closeSpellmenu();
-end
-
-local Racial, Spec, Caster, Ability, Rank, Arc_Talent, Fire_Talent, Frost_Talent, Runes, Buff, Debuff = ids.Racial, ids.Spec, ids.Caster, ids.Ability, ids.Rank, ids.Arcane_Talent, ids.Fire_Talent, ids.Frost_Talent, ids.Runes, ids.Buff, ids.Debuff;
+local Racial, Spec, Caster, Ability, Rank, Arc_Talent, Fire_Talent, Frost_Talent, Engrave, Runes, Buff, Debuff = ids.Racial, ids.Spec, ids.Caster, ids.Ability, ids.Rank, ids.Arcane_Talent, ids.Fire_Talent, ids.Frost_Talent, ids.Engrave, ids.Runes, ids.Buff, ids.Debuff;
 local wChillEXP = 0;
 local fVulEXP = 0;
 local fStrikeEXP = 0;
 local fStrikeDREXP = 0;
 
 --Info
+local _Player_Spec, _Player_Spec_ID = ConROC:currentSpec();
 local _Player_Level = UnitLevel("player");
 local _Player_Percent_Health = ConROC:PercentHealth('player');
 local _is_PvP = ConROC:IsPvP();
@@ -79,6 +61,7 @@ local _EscapeArtist, _EscapeArtist_RDY = _, _;
 local _Perception, _Perception_RDY = _, _;
 
 function ConROC:Stats()
+	_Player_Spec, _Player_Spec_ID = ConROC:currentSpec();
 	_Player_Level = UnitLevel("player");
 	_Player_Percent_Health = ConROC:PercentHealth('player');
 	_is_PvP = ConROC:IsPvP();
@@ -198,7 +181,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	end
 
 	if ConROC.Seasons.IsSoD then --DPS rotation for SoD
-		if _Player_Level < 10 or not currentSpecID then
+		if _Player_Level < 10 or not _Player_Spec_ID then
 			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
 		    	return _IcyVeins;
 		    end
@@ -276,7 +259,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
             	return Caster.Shoot;
         	end
 		else
-			if (currentSpecID == ids.Spec.Arcane) then
+			if (_Player_Spec_ID == ids.Spec.Arcane) then
 				if ConROC_AoEButton:IsVisible() then
 					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
 				    	return _LivingFlame;
@@ -306,7 +289,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 				        return _ArcaneMissiles;
 				    end
 				end
-			elseif (currentSpecID == ids.Spec.Fire) then
+			elseif (_Player_Spec_ID == ids.Spec.Fire) then
 				if ConROC_AoEButton:IsVisible() then
 					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
 				        return _ArcaneExplosion;
@@ -362,7 +345,7 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 		            	return Caster.Shoot;
 		        	end
 				end
-			elseif (currentSpecID == ids.Spec.Frost) then
+			elseif (_Player_Spec_ID == ids.Spec.Frost) then
 				if ConROC_AoEButton:IsVisible() then
 					if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
 				        return _ArcaneExplosion;
