@@ -102,8 +102,10 @@ local function CheckScrollbarVisibility()
     end
 end
 
-function ConROC:SpellmenuClass()
-	ConROC:UpdateSpellID();
+
+function ConROC:RotationChoices()
+    ConROC:UpdateSpellID();
+
 	ConROC_RoleSettingsTable = {
 		{
 		frameName = "Caster",
@@ -139,6 +141,7 @@ function ConROC:SpellmenuClass()
 	    frameName = "Armors",
 	    spells = {
 	      {spellID = ids.Ability.IceArmor, spellCheckbox = "Armor_Ice", reqLevel = 1, type="spell"},
+	      {spellID = ids.Runes.MoltenArmor, spellCheckbox = "Armor_MoltenArmor", reqLevel = 1, type="spell"},
 	      {spellID = ids.Ability.MageArmor, spellCheckbox = "Armor_Mage", reqLevel = 34, type="spell"},
 	    },
 	    groupType = "radioButtons"
@@ -147,6 +150,7 @@ function ConROC:SpellmenuClass()
 	    frameName = "Filler",
 	    spells = {
 	      {spellID = ids.Ability.Fireball, spellCheckbox = "Filler_Fireball", reqLevel = 1, type="spell"},
+	      {spellID = ids.Runes.FrostfireBolt, spellCheckbox = "Filler_FrostfireBolt", reqLevel = 1, type="spell"},
 	      {spellID = ids.Ability.Frostbolt, spellCheckbox = "Filler_Frostbolt", reqLevel = 4, type="spell"},
 	      {spellID = ids.Ability.ArcaneMissiles, spellCheckbox = "Filler_ArcaneMissiles", reqLevel = 8, type="spell"}
 	    },
@@ -179,6 +183,10 @@ function ConROC:SpellmenuClass()
 	    }
 	  	}
 	}
+end
+
+function ConROC:SpellmenuClass()
+	ConROC:RotationChoices();
 
 	local _, Class, classId = UnitClass("player")
 	local Color = RAID_CLASS_COLORS[Class]
@@ -787,7 +795,8 @@ function ConROC:OptionNone(_spellData, i, j, _spellFrame, _checkType, _radioButt
 end
 
 function ConROC:SpellMenuUpdate(newSpell)
-	ConROC:UpdateSpellID();
+	ConROC:RotationChoices();
+
 	lastFrame = ConROCScrollChild;
 	local anyHLVisible = false;
 	scrollHeight = 0;
@@ -841,7 +850,6 @@ function ConROC:SpellMenuUpdate(newSpell)
 							oItem:Hide()
 							--print("Hide spell", spellName)
 						end
-					else
 					end
 				--spell end
 				elseif _spellData.type == "wand" then
@@ -1007,10 +1015,6 @@ function ConROC:SpellMenuUpdate(newSpell)
 		CheckScrollbarVisibility()
 		ConROCScrollContainer:Show();
 		ConROCScrollChild:Show();
-	end
-
-	if newSpell then
-		ConROC:closeSpellmenu();
 	end
 end
 

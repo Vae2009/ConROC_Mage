@@ -9,7 +9,9 @@ function ConROC:EnableRotationModule()
 	self:RegisterEvent('UNIT_SPELLCAST_SUCCEEDED');
 	self.lastSpellId = 0;
 
-	ConROC:SpellmenuClass();
+	if ConROCSpellmenuClass == nil then
+		ConROC:SpellmenuClass();
+	end
 end
 
 function ConROC:EnableDefenseModule()
@@ -90,6 +92,7 @@ end
 
 function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 	ConROC:UpdateSpellID();
+	wipe(ConROC.SuggestedSpells);
 	ConROC:Stats();
 
 --Abilties	
@@ -143,7 +146,8 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 --Runes
 	local _ArcaneBlast, _ArcaneBlast_RDY = ConROC:AbilityReady(Runes.ArcaneBlast, timeShift);
 		local _, _ArcaneBlast_COUNT = ConROC:TargetAura(_ArcaneBlast);
-	local _ArcaneSurge, _ArcaneSurge_COUNT = ConROC:AbilityReady(Runes.ArcaneSurge, timeShift);
+	local _ArcaneSurge, _ArcaneSurge_RDY = ConROC:AbilityReady(Runes.ArcaneSurge, timeShift);
+	local _FrostfireBolt, _FrostfireBolt_RDY = ConROC:AbilityReady(Runes.FrostfireBolt, timeShift);
 	local _IceLance, _IceLance_RDY = ConROC:AbilityReady(Runes.IceLance, timeShift);
 	local _IcyVeins, _IcyVeins_RDY = ConROC:AbilityReady(Runes.IcyVeins, timeShift);
 	local _LivingBomb, _LivingBomb_RDY = ConROC:AbilityReady(Runes.LivingBomb, timeShift);
@@ -176,334 +180,545 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 --Warnings
 
 --Rotations
-	if ConROC:CheckBox(ConROC_SM_CD_Evocation) and _Evocation_RDY and _Mana_Percent < 10 then
-		return _Evocation;
-	end
-
-	if ConROC.Seasons.IsSoD then --DPS rotation for SoD
-		if _Player_Level < 10 or not _Player_Spec_ID then
-			if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
-		    	return _IcyVeins;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
-		    	return _LivingFlame;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
-		    	return _LivingBomb;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-		    	return _ArcaneBlast;
-		    end
-
-		    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and _ArcaneSurge_COUNT then
-		    	return _ArcaneSurge;
-		    end]]
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
-		    	return _IceLance;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and _MassRegeneration_RDY then
-		    	return _MassRegeneration;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and _Regeneration_RDY then
-		    	return _Regeneration;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and _RewindTime_RDY then
-		    	return _RewindTime;
-		    end
-
-		    if ConROC_AoEButton:IsVisible() then
-		    	if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
-			        return _ArcaneExplosion;
-			    end
-
-			    if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
-			        return _Flamestrike;
-			    end
-
-			    if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
-			        return _Blizzard;
-			    end
+	repeat
+		while(true) do
+			if ConROC:CheckBox(ConROC_SM_CD_Evocation) and ((_Evocation_RDY and _Mana_Percent < 10) or currentSpell == _Evocation) then
+				tinsert(ConROC.SuggestedSpells, _Evocation);
+				_Evocation_RDY = false;
+				_Queue = _Queue + 1;
+				break;
 			end
 
-	       	if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
-		        return _FireBlast;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
-		        return _Frostbolt;
-		    end
-		    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
-		    	return _IceLance;
-		    end
-
-		    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
-		        return _Fireball;
-		    end
-
-	    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
-		        return _ArcaneMissiles;
-		    end
-
-	        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
-		        return _Frostbolt;
-		    end
-
-        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
-            	return Caster.Shoot;
-        	end
-		else
-			if (_Player_Spec_ID == ids.Spec.Arcane) then
-				if ConROC_AoEButton:IsVisible() then
-					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
-				    	return _LivingFlame;
-				    end
-
-				    --[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-				    	return _ArcaneBlast;
-				    end]]
-
-					if _ArcaneExplosion_RDY and _target_in_melee then
-				        return _ArcaneExplosion;
-					end
-				else
-					if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
-				        return _ArcaneExplosion;
+			if ConROC.Seasons.IsSoD then --DPS rotation for SoD
+				if _Player_Level < 10 or not _Player_Spec_ID then
+					if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+						tinsert(ConROC.SuggestedSpells, _IcyVeins);
+						_IcyVeins_RDY = false;
+						_Queue = _Queue + 1;
+						break;
 					end
 
 					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
-				    	return _LivingFlame;
-				    end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
-				    	return _ArcaneBlast;
-				    end
-
-			    	if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
-				        return _ArcaneMissiles;
-				    end
-				end
-			elseif (_Player_Spec_ID == ids.Spec.Fire) then
-				if ConROC_AoEButton:IsVisible() then
-					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
-				        return _ArcaneExplosion;
-					elseif _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
-				        return _FireBlast;
+						tinsert(ConROC.SuggestedSpells, _LivingFlame);
+						_LivingFlame_RDY = false;
+						_Queue = _Queue + 1;
+						break;
 					end
 
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
-				    	return _LivingBomb;
-				    end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
-				    	return _LivingFlame;
-				    end
-
-					if _ArcaneExplosion_RDY and _target_in_melee then
-				        return _ArcaneExplosion;
-					end
-				else
-					if _Pyroblast_RDY and not _in_combat then
-						return _Pyroblast
+					if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+						tinsert(ConROC.SuggestedSpells, _LivingBomb);
+						_LivingBomb_DEBUFF = true;
+						_Queue = _Queue + 1;
+						break;
 					end
 
-					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
-				        return _ArcaneExplosion;
+					if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+						tinsert(ConROC.SuggestedSpells, _ArcaneBlast);
+						_ArcaneBlast_COUNT = _ArcaneBlast_COUNT + 1;
+						_Queue = _Queue + 1;
+						break;
 					end
 
-					if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
-				        return _FireBlast;
-					end
-
-					if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
-				    	return _LivingFlame;
-				    end
-
-				    if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
-				        return _Scorch;
-				    end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
-				    	return _LivingBomb;
-				    end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
-						return _IcyVeins;
-					end
-
-				    if _Fireball_RDY then
-				        return _Fireball;
-				    end
-
-		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
-		            	return Caster.Shoot;
-		        	end
-				end
-			elseif (_Player_Spec_ID == ids.Spec.Frost) then
-				if ConROC_AoEButton:IsVisible() then
-					if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
-				        return _ArcaneExplosion;
-					end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
-				    	return _LivingBomb;
-				    end
-
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
-				    	return _LivingFlame;
-				    end
-
-				    if _Blizzard_RDY then
-				    	return _Blizzard
-				    end
-				else
-					if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
-				        return _ArcaneExplosion;
-					end
-
-					if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
-				        return _FireBlast;
+					if ConROC:CheckBox(ConROC_SM_Rune_ArcaneSurge) and _ArcaneSurge_RDY then
+						tinsert(ConROC.SuggestedSpells, _ArcaneSurge);
+						_ArcaneSurge_RDY = false;
+						_Queue = _Queue + 1;
+						break;
 					end
 
 					if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
-				    	return _IceLance;
-				    end
+						tinsert(ConROC.SuggestedSpells, _IceLance);
+						_FingersofFrost_COUNT = _FingersofFrost_COUNT - 1;
+						_Queue = _Queue + 1;
+						break;
+					end
 
-				    if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
-				    	return _LivingBomb;
-				    end
+					if ConROC:CheckBox(ConROC_SM_Rune_MassRegeneration) and _MassRegeneration_RDY then
+						tinsert(ConROC.SuggestedSpells, _MassRegeneration);
+						_MassRegeneration_RDY = false;
+						_Queue = _Queue + 1;
+						break;
+					end
 
-					if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
-				    	return _IcyVeins;
-				    end
+					if ConROC:CheckBox(ConROC_SM_Rune_Regeneration) and _Regeneration_RDY then
+						tinsert(ConROC.SuggestedSpells, _Regeneration);
+						_Regeneration_RDY = false;
+						_Queue = _Queue + 1;
+						break;
+					end
 
-				    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
-				        return _Frostbolt;
-				    end
+					if ConROC:CheckBox(ConROC_SM_Rune_RewindTime) and _RewindTime_RDY then
+						tinsert(ConROC.SuggestedSpells, _RewindTime);
+						_RewindTime_RDY = false;
+						_Queue = _Queue + 1;
+						break;
+					end
 
-				    if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
-				    	return _IceLance;
-				    end
+					if ConROC_AoEButton:IsVisible() then
+						if ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
+							tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+							_Queue = _Queue + 1;
+							break;
+						end
 
-			        if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
-				        return _Frostbolt;
-				    end
+						if ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
+							tinsert(ConROC.SuggestedSpells, _Flamestrike);
+							_Queue = _Queue + 1;
+							break;
+						end
 
-		        	if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
-		            	return Caster.Shoot;
-		        	end
+						if ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
+							tinsert(ConROC.SuggestedSpells, _Blizzard);
+							_Queue = _Queue + 1;
+							break;
+						end
+					end
+
+					if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
+						tinsert(ConROC.SuggestedSpells, _FireBlast);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
+						tinsert(ConROC.SuggestedSpells, _Frostbolt);
+						_Queue = _Queue + 1;
+						break;
+					end
+					if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_BUFF) then
+						tinsert(ConROC.SuggestedSpells, _IceLance);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
+						tinsert(ConROC.SuggestedSpells, Caster.Shoot);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Filler_FrostfireBolt) and _FrostfireBolt_RDY then
+						tinsert(ConROC.SuggestedSpells, _FrostfireBolt);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
+						tinsert(ConROC.SuggestedSpells, _Fireball);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
+						tinsert(ConROC.SuggestedSpells, _ArcaneMissiles);
+						_Queue = _Queue + 1;
+						break;
+					end
+
+					if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
+						tinsert(ConROC.SuggestedSpells, _Frostbolt);
+						_Queue = _Queue + 1;
+						break;
+					end
+				else
+					if (_Player_Spec_ID == ids.Spec.Arcane) then
+						if ConROC_AoEButton:IsVisible() then
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+								tinsert(ConROC.SuggestedSpells, _LivingFlame);
+								_LivingFlame_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							--[[if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+								tinsert(ConROC.SuggestedSpells, _ArcaneBlast);
+								_ArcaneBlast_COUNT = _ArcaneBlast_COUNT + 1;
+								_Queue = _Queue + 1;
+								break;
+							end]]
+
+							if _ArcaneExplosion_RDY and _target_in_melee then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							end
+						else
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+								tinsert(ConROC.SuggestedSpells, _LivingFlame);
+								_LivingFlame_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_ArcaneBlast) and _ArcaneBlast_RDY and _ArcaneBlast_COUNT < ConROC_SM_Rune_ArcaneBlastCount:GetNumber() then
+								tinsert(ConROC.SuggestedSpells, _ArcaneBlast);
+								_ArcaneBlast_COUNT = _ArcaneBlast_COUNT + 1;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
+								tinsert(ConROC.SuggestedSpells, _ArcaneMissiles);
+								_Queue = _Queue + 1;
+								break;
+							end
+						end
+					elseif (_Player_Spec_ID == ids.Spec.Fire) then
+						if ConROC_AoEButton:IsVisible() then
+							if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							elseif _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
+								tinsert(ConROC.SuggestedSpells, _FireBlast);
+								_FireBlast_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+								tinsert(ConROC.SuggestedSpells, _LivingBomb);
+								_LivingBomb_DEBUFF = true;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
+								tinsert(ConROC.SuggestedSpells, _LivingFlame);
+								_LivingFlame_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _ArcaneExplosion_RDY and _target_in_melee then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							end
+						else
+							if _Pyroblast_RDY and not _in_combat then
+								tinsert(ConROC.SuggestedSpells, _Pyroblast);
+								_in_combat = true;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
+								tinsert(ConROC.SuggestedSpells, _FireBlast);
+								_FireBlast_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY then
+								tinsert(ConROC.SuggestedSpells, _LivingFlame);
+								_LivingFlame_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
+								tinsert(ConROC.SuggestedSpells, _Scorch);
+								_FireVulnerability_COUNT = _FireVulnerability_COUNT + 1;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+								tinsert(ConROC.SuggestedSpells, _LivingBomb);
+								_LivingBomb_DEBUFF = true;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+								tinsert(ConROC.SuggestedSpells, _IcyVeins);
+								_IcyVeins_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
+								tinsert(ConROC.SuggestedSpells, Caster.Shoot);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_FrostfireBolt) and _FrostfireBolt_RDY then
+								tinsert(ConROC.SuggestedSpells, _FrostfireBolt);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
+								tinsert(ConROC.SuggestedSpells, _Fireball);
+								_Queue = _Queue + 1;
+								break;
+							end
+						end
+					elseif (_Player_Spec_ID == ids.Spec.Frost) then
+						if ConROC_AoEButton:IsVisible() then
+							if _ArcaneExplosion_RDY and ((_Target_Percent_Health <= 25 and _target_in_melee) or _target_in_melee) then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+								tinsert(ConROC.SuggestedSpells, _LivingBomb);
+								_LivingBomb_DEBUFF = true;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingFlame) and _LivingFlame_RDY and ConROC_AoEButton:IsVisible() then
+								tinsert(ConROC.SuggestedSpells, _LivingFlame);
+								_LivingFlame_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _Blizzard_RDY then
+								tinsert(ConROC.SuggestedSpells, _Blizzard);
+								_Queue = _Queue + 1;
+								break;
+							end
+						else
+							if _ArcaneExplosion_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and _enemies_in_10yrds > 2 then
+								tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) then
+								tinsert(ConROC.SuggestedSpells, _FireBlast);
+								_FireBlast_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT > 1) then
+								tinsert(ConROC.SuggestedSpells, _IceLance);
+								_FingersofFrost_COUNT = _FingersofFrost_COUNT - 1;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_LivingBomb) and _LivingBomb_RDY and not _LivingBomb_DEBUFF and ((_Target_Percent_Health >= 5 and ConROC:Raidmob()) or (_Target_Percent_Health >= 20 and not ConROC:Raidmob())) then
+								tinsert(ConROC.SuggestedSpells, _LivingBomb);
+								_LivingBomb_DEBUFF = true;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_IcyVeins) and _IcyVeins_RDY then
+								tinsert(ConROC.SuggestedSpells, _IcyVeins);
+								_IcyVeins_RDY = false;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_FrostfireBolt) and _FrostfireBolt_RDY and _FingersofFrost_COUNT == 1 then
+								tinsert(ConROC.SuggestedSpells, _FrostfireBolt);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY and _FingersofFrost_COUNT == 1 then
+								tinsert(ConROC.SuggestedSpells, _Frostbolt);
+								_FingersofFrost_COUNT = _FingersofFrost_COUNT - 1;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Rune_IceLance) and _IceLance_RDY and (_is_moving or _FingersofFrost_COUNT >= 1) then
+								tinsert(ConROC.SuggestedSpells, _IceLance);
+								_FingersofFrost_COUNT = _FingersofFrost_COUNT - 1;
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
+								tinsert(ConROC.SuggestedSpells, Caster.Shoot);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_FrostfireBolt) and _FrostfireBolt_RDY then
+								tinsert(ConROC.SuggestedSpells, _FrostfireBolt);
+								_Queue = _Queue + 1;
+								break;
+							end
+
+							if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
+								tinsert(ConROC.SuggestedSpells, _Frostbolt);
+								_Queue = _Queue + 1;
+								break;
+							end
+						end
+					end
+				end
+			else --DPS rotation for Classic Era & Classic HC
+				if _Pyroblast_RDY and (not _in_combat or _PresenceofMind_BUFF) then
+					tinsert(ConROC.SuggestedSpells, _Pyroblast);
+					_in_combat = true;
+					_PresenceofMind_BUFF = false;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if _WintersChill_COUNT >= 1 and _WintersChill_DUR <= 4 then
+					tinsert(ConROC.SuggestedSpells, _Frostbolt);
+					_WintersChill_COUNT = _WintersChill_COUNT + 1
+					_WintersChill_DUR = 15;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if _FireVulnerability_COUNT >= 1 and _FireVulnerability_DUR <= 4 then
+					tinsert(ConROC.SuggestedSpells, _Scorch);
+					_FireVulnerability_COUNT = _FireVulnerability_COUNT + 1;
+					_FireVulnerability_DUR = 30;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if _ConeofCold_RDY and _FrostNova_DEBUFF and _target_in_10yrds then
+					tinsert(ConROC.SuggestedSpells, _ConeofCold);
+					_ConeofCold_RDY = false;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
+					tinsert(ConROC.SuggestedSpells, _FireBlast);
+					_FireBlast_RDY = false;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
+					tinsert(ConROC.SuggestedSpells, Caster.Shoot);
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC_AoEButton:IsVisible() and _BlastWave_RDY and _target_in_melee then
+					tinsert(ConROC.SuggestedSpells, _BlastWave);
+					_BlastWave_RDY = false;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
+					tinsert(ConROC.SuggestedSpells, _ArcaneExplosion);
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
+					tinsert(ConROC.SuggestedSpells, _Flamestrike);
+					_Flamestrike_DUR = 8;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
+					tinsert(ConROC.SuggestedSpells, _Blizzard);
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC:CheckBox(ConROC_SM_CD_Combustion) and _Combustion_RDY and _in_combat and _FireVulnerability_COUNT == 5 then
+					tinsert(ConROC.SuggestedSpells, _Combustion);
+					_Combustion_RDY = false;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
+					tinsert(ConROC.SuggestedSpells, _Scorch);
+					_FireVulnerability_COUNT = _FireVulnerability_COUNT + 1;
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
+					tinsert(ConROC.SuggestedSpells, _Fireball);
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
+					tinsert(ConROC.SuggestedSpells, _ArcaneMissiles);
+					_Queue = _Queue + 1;
+					break;
+				end
+
+				if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
+					tinsert(ConROC.SuggestedSpells, _Frostbolt);
+					_Queue = _Queue + 1;
+					break;
 				end
 			end
+
+			tinsert(ConROC.SuggestedSpells, 26008); --Waiting Spell Icon
+			_Queue = _Queue + 3;
+			break;
 		end
-	else --DPS rotation for Classic Era & Classic HC
-	    if _Pyroblast_RDY and (not _in_combat or _PresenceofMind_BUFF) then
-	        return _Pyroblast;
-	    end
-
-	    if _WintersChill_COUNT >= 1 and _WintersChill_DUR <= 4 then
-	        return _Frostbolt;
-	    end
-
-	    if _FireVulnerability_COUNT >= 1 and _FireVulnerability_DUR <= 4 then
-	        return _Scorch;
-	    end
-
-	    if _ConeofCold_RDY and _FrostNova_DEBUFF and _target_in_melee then
-	        return _ConeofCold;
-	    end
-
-	    if _FireBlast_RDY and (_Target_Percent_Health <= 25 or _target_in_melee) and not ConROC_AoEButton:IsVisible() then
-	        return _FireBlast;
-	    end
-
-	    if ConROC:CheckBox(ConROC_SM_Option_UseWand) and _Has_Wand and ((_Mana_Percent <= 10 and not _Evocation_RDY) or _Target_Percent_Health <= 5) then
-	        return Caster.Shoot;
-	    end
-
-	    if ConROC_AoEButton:IsVisible() and _BlastWave_RDY and _target_in_melee then
-	        return _BlastWave;
-	    end
-
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_ArcaneExplosion) and _ArcaneExplosion_RDY and _target_in_melee then
-	        return _ArcaneExplosion;
-	    end
-
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Flamestrike) and _Flamestrike_RDY and not _target_in_melee and _Flamestrike_DUR <= 2 then
-	        return _Flamestrike;
-	    end
-
-	    if ConROC_AoEButton:IsVisible() and ConROC:CheckBox(ConROC_SM_AoE_Blizzard) and _Blizzard_RDY and not _target_in_melee then
-	        return _Blizzard;
-	    end
-
-	    if ConROC:CheckBox(ConROC_SM_CD_Combustion) and _Combustion_RDY and _in_combat and ConROC:TalentChosen(Spec.Fire, Fire_Talent.Combustion) and _FireVulnerability_COUNT == 5 then
-	        return _Combustion
-	    end
-
-	    if _Scorch_RDY and ConROC:TalentChosen(Spec.Fire, Fire_Talent.ImprovedScorch) and _FireVulnerability_COUNT < 5 then
-	        return _Scorch;
-	    end
-
-	    if ConROC:CheckBox(ConROC_SM_Filler_Fireball) and _Fireball_RDY then
-	        return _Fireball;
-	    end
-
-	    if ConROC:CheckBox(ConROC_SM_Filler_ArcaneMissiles) and _ArcaneMissiles_RDY then
-	        return _ArcaneMissiles;
-	    end
-
-	    if ConROC:CheckBox(ConROC_SM_Filler_Frostbolt) and _Frostbolt_RDY then
-	        return _Frostbolt;
-	    end
-    end
+	until _Queue >= 3;
 return nil;
 end
 
 function ConROC.Mage.Defense(_, timeShift, currentSpell, gcd)
 	ConROC:UpdateSpellID();
+	wipe(ConROC.SuggestedDefSpells);
 	ConROC:Stats();
 
 --Abilties
+	local _IceArmor, _IceArmor_RDY = ConROC:AbilityReady(Ability.IceArmor, timeShift);
+		local _IceArmor_BUFF = ConROC:Aura(_IceArmor, timeShift);
+	local _IceBarrier, _IceBarrier_RDY = ConROC:AbilityReady(Ability.IceBarrier, timeShift);
+		local _IceBarrier_BUFF = ConROC:Aura(_IceBarrier, timeShift);
+	local _FrostNova, _FrostNova_RDY = ConROC:AbilityReady(Ability.FrostNova, timeShift);
 	local _MageArmor, _MageArmor_RDY = ConROC:AbilityReady(Ability.MageArmor, timeShift);
 		local _MageArmor_BUFF = ConROC:Aura(_MageArmor, timeShift);
 	local _ManaShield, _ManaShield_RDY = ConROC:AbilityReady(Ability.ManaShield, timeShift);
 		local _ManaShield_BUFF = ConROC:Aura(_ManaShield, timeShift);
-	local _IceBarrier, _IceBarrier_RDY = ConROC:AbilityReady(Ability.IceBarrier, timeShift);
-		local _IceBarrier_BUFF = ConROC:Aura(_IceBarrier, timeShift);
-	local _IceArmor, _IceArmor_RDY = ConROC:AbilityReady(Ability.IceArmor, timeShift);
-		local _IceArmor_BUFF = ConROC:Aura(_IceArmor, timeShift);
-	local _FrostNova, _FrostNova_RDY = ConROC:AbilityReady(Ability.FrostNova, timeShift);
+
+	local _MoltenArmor, _MoltenArmor_RDY = ConROC:AbilityReady(Runes.MoltenArmor, timeShift);
+		local _MoltenArmor_BUFF = ConROC:Aura(_MoltenArmor, timeShift);
+
 
 --Conditions
-    local onVehicle = UnitHasVehicleUI("player");
-
-    if onVehicle then
-        return nil
-    end
 
 --Indicators
 
 --Rotations
 	if ConROC:CheckBox(ConROC_SM_Armor_Ice) and _IceArmor_RDY and not _IceArmor_BUFF then
-		return _IceArmor;
+		tinsert(ConROC.SuggestedDefSpells, _IceArmor);
 	end
 
 	if ConROC:CheckBox(ConROC_SM_Armor_Mage) and _MageArmor_RDY and not _MageArmor_BUFF then
-		return _MageArmor;
+		tinsert(ConROC.SuggestedDefSpells, _MageArmor);
+	end
+
+	if ConROC:CheckBox(ConROC_SM_Armor_MoltenArmor) and _MoltenArmor_RDY and not _MoltenArmor_BUFF then
+		tinsert(ConROC.SuggestedDefSpells, _MoltenArmor);
 	end
 
 	if _FrostNova_RDY and _target_in_melee and _Target_Percent_Health >= 20 then
-		return _FrostNova;
+		tinsert(ConROC.SuggestedDefSpells, _FrostNova);
 	end
 
 	if _IceBarrier_RDY and not _IceBarrier_BUFF then
-		return _IceBarrier;
+		tinsert(ConROC.SuggestedDefSpells, _IceBarrier);
 	end
 return nil;
 end
