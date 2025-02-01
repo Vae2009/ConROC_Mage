@@ -182,6 +182,17 @@ function ConROC.Mage.Damage(_, timeShift, currentSpell, gcd)
 --Rotations
 	repeat
 		while(true) do
+			if _FireBlast_RDY then
+				tinsert(ConROC.SuggestedSpells, _FireBlast);
+				_FireBlast_RDY = false;
+				_Queue = _Queue + 1;
+				break;
+			end
+
+
+
+
+
 			if ConROC:CheckBox(ConROC_SM_CD_Evocation) and ((_Evocation_RDY and _Mana_Percent < 10) or currentSpell == _Evocation) then
 				tinsert(ConROC.SuggestedSpells, _Evocation);
 				_Evocation_RDY = false;

@@ -129,6 +129,13 @@ ids.Rank = {
 	FireBlastRank5 = 8413,
 	FireBlastRank6 = 10197,
 	FireBlastRank7 = 10199,
+	FireBlastSoDRank1 = 400618,
+	FireBlastSoDRank2 = 400619,
+	FireBlastSoDRank3 = 400616,
+	FireBlastSoDRank4 = 400620,
+	FireBlastSoDRank5 = 400621,
+	FireBlastSoDRank6 = 400622,
+	FireBlastSoDRank7 = 400623,
 	FireWardRank1 = 543,
 	FireWardRank2 = 8457,
 	FireWardRank3 = 8458,
@@ -266,7 +273,8 @@ ids.Frost_Talent = {
 	ElementalPrecision =  17,
 }
 ids.Engrave = {
-
+	--Cloak--
+	Overheat = 6734,
 }
 ids.Runes = {
 	ArcaneSurge = 425124,
@@ -333,12 +341,22 @@ function ConROC:UpdateSpellID()
 	elseif IsSpellKnown(ids.Rank.BlastWaveRank3) then ids.Ability.BlastWave = ids.Rank.BlastWaveRank3;
 	elseif IsSpellKnown(ids.Rank.BlastWaveRank2) then ids.Ability.BlastWave = ids.Rank.BlastWaveRank2; end
 
-	if IsSpellKnown(ids.Rank.FireBlastRank7) then ids.Ability.FireBlast = ids.Rank.FireBlastRank7;
-	elseif IsSpellKnown(ids.Rank.FireBlastRank6) then ids.Ability.FireBlast = ids.Rank.FireBlastRank6;
-	elseif IsSpellKnown(ids.Rank.FireBlastRank5) then ids.Ability.FireBlast = ids.Rank.FireBlastRank5;
-	elseif IsSpellKnown(ids.Rank.FireBlastRank4) then ids.Ability.FireBlast = ids.Rank.FireBlastRank4;
-	elseif IsSpellKnown(ids.Rank.FireBlastRank3) then ids.Ability.FireBlast = ids.Rank.FireBlastRank3;
-	elseif IsSpellKnown(ids.Rank.FireBlastRank2) then ids.Ability.FireBlast = ids.Rank.FireBlastRank2; end
+	if ConROC.Seasons.IsSoD and ConROC:RuneEquipped(ids.Engrave.Overheat, "back") then
+		if IsSpellKnown(ids.Rank.FireBlastRank7) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank7;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank6) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank6;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank5) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank5;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank4) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank4;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank3) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank3;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank2) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank2;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank1) then ids.Ability.FireBlast = ids.Rank.FireBlastSoDRank1; end
+	else
+		if IsSpellKnown(ids.Rank.FireBlastRank7) then ids.Ability.FireBlast = ids.Rank.FireBlastRank7;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank6) then ids.Ability.FireBlast = ids.Rank.FireBlastRank6;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank5) then ids.Ability.FireBlast = ids.Rank.FireBlastRank5;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank4) then ids.Ability.FireBlast = ids.Rank.FireBlastRank4;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank3) then ids.Ability.FireBlast = ids.Rank.FireBlastRank3;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank2) then ids.Ability.FireBlast = ids.Rank.FireBlastRank2; end
+	end
 
 	if IsSpellKnown(ids.Rank.FireWardRank5) then ids.Ability.FireWard = ids.Rank.FireWardRank5;
 	elseif IsSpellKnown(ids.Rank.FireWardRank4) then ids.Ability.FireWard = ids.Rank.FireWardRank4;
