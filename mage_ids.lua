@@ -355,7 +355,8 @@ function ConROC:UpdateSpellID()
 		elseif IsSpellKnown(ids.Rank.FireBlastRank5) then ids.Ability.FireBlast = ids.Rank.FireBlastRank5;
 		elseif IsSpellKnown(ids.Rank.FireBlastRank4) then ids.Ability.FireBlast = ids.Rank.FireBlastRank4;
 		elseif IsSpellKnown(ids.Rank.FireBlastRank3) then ids.Ability.FireBlast = ids.Rank.FireBlastRank3;
-		elseif IsSpellKnown(ids.Rank.FireBlastRank2) then ids.Ability.FireBlast = ids.Rank.FireBlastRank2; end
+		elseif IsSpellKnown(ids.Rank.FireBlastRank2) then ids.Ability.FireBlast = ids.Rank.FireBlastRank2;
+		elseif IsSpellKnown(ids.Rank.FireBlastRank1) then ids.Ability.FireBlast = ids.Rank.FireBlastRank1; end
 	end
 
 	if IsSpellKnown(ids.Rank.FireWardRank5) then ids.Ability.FireWard = ids.Rank.FireWardRank5;
